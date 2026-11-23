@@ -4,7 +4,7 @@
 @@_session.sql
 @@_admin.sql
 PROMPT This removes DDS_EMMA, DDS_MARVIN, DDS_OUTSIDER and DDS_OWNER.
-PROMPT DDS_OWNER objects and the four dedicated roles will be removed.
+PROMPT DDS_OWNER objects and the dedicated DDS roles will be removed.
 PROMPT Autonomous Database, DATA tablespace and IAM settings are retained.
 ACCEPT dds_cleanup CHAR PROMPT 'Type REMOVE_DDS_DEMO to delete: '
 BEGIN
@@ -21,6 +21,7 @@ DROP USER IF EXISTS DDS_OWNER CASCADE;
 DROP DATA ROLE IF EXISTS DDS_EMPLOYEE_ROLE;
 DROP DATA ROLE IF EXISTS DDS_MANAGER_ROLE;
 DROP DATA ROLE IF EXISTS DDS_LOGIN_ONLY_ROLE;
+DROP ROLE IF EXISTS DDS_AI_DB_ROLE;
 DROP ROLE IF EXISTS DDS_LOGIN_DB_ROLE;
 -- No shared tablespace or datafile is dropped.
 PROMPT PASS: dedicated DDS lab principals and objects removed.

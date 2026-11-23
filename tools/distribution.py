@@ -3,7 +3,7 @@ ROOT_FILES = {
     '.gitignore', 'README.md', 'RUN_LAB.md', 'AUTONOMOUS_CONNECTION.md',
     'AI_VERIFICATION.md', 'VALIDATION.md', 'BUILDING.md',
     'BUILD_VERIFICATION.txt', 'config.env.example', 'requirements.txt',
-    'requirements-streamlit.txt', 'setup.sh', 'start_ollama.sh',
+    'requirements-streamlit.txt', 'setup.sh',
     'streamlit_app.py', 'index.html', 'SHA256SUMS.txt',
 }
 FOLDERS = {

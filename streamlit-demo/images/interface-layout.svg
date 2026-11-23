@@ -7,7 +7,7 @@
 <text x="60" y="163" font-family="Arial,sans-serif" font-size="17">Sign in as Emma or Marvin. Sign out clears the prior session data.</text>
 <rect x="40" y="210" width="1020" height="70" rx="5" fill="white" stroke="#bbb"/>
 <text x="60" y="238" font-family="Arial,sans-serif" font-size="20" font-weight="bold">Top  Active identity and prompt</text>
-<text x="60" y="263" font-family="Arial,sans-serif" font-size="17">Display the verified principal, PDB, model, selected prompt, and submitted request.</text>
+<text x="60" y="263" font-family="Arial,sans-serif" font-size="17">Display the verified principal, PDB, OCI provider, selected prompt, and submitted request.</text>
 <rect x="40" y="310" width="1020" height="70" rx="5" fill="white" stroke="#bbb"/>
 <text x="60" y="338" font-family="Arial,sans-serif" font-size="20" font-weight="bold">Left  Database tool results</text>
 <text x="60" y="363" font-family="Arial,sans-serif" font-size="17">Inspect authorized records, salary totals, and exact raw JSON including protected NULL values.</text>

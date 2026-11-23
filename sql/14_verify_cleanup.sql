@@ -12,7 +12,7 @@ BEGIN
       WHERE username IN ('DDS_EMMA','DDS_MARVIN','DDS_OUTSIDER')
     UNION ALL
     SELECT COUNT(*) FROM dba_roles
-      WHERE role = 'DDS_LOGIN_DB_ROLE'
+      WHERE role IN ('DDS_LOGIN_DB_ROLE','DDS_AI_DB_ROLE')
     UNION ALL
     SELECT COUNT(*) FROM dba_data_roles
       WHERE data_role IN ('DDS_EMPLOYEE_ROLE','DDS_MANAGER_ROLE',

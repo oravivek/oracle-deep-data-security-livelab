@@ -27,12 +27,12 @@
       "filename": "../../sql-demo/sql-demo.md"
     },
     {
-      "title": "Lab 4: Install and Verify the Python Agent",
+      "title": "Lab 4: Configure Select AI Agent and Python",
       "description": "Install the runtime and validate database tools before model inference.",
       "filename": "../../python-agent-setup/python-agent-setup.md"
     },
     {
-      "title": "Lab 5: Ask the AI Agent as Each Persona",
+      "title": "Lab 5: Ask Select AI Agent as Each Persona",
       "description": "Compare model answers with the authorized database tool results.",
       "filename": "../../ai-agent-demo/ai-agent-demo.md"
     },

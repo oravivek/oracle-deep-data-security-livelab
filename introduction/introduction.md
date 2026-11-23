@@ -4,9 +4,9 @@
 
 Build and present an end-to-end Deep Data Security demonstration. You will create
 the database policies, run the same SQL as an employee and a manager, connect a
-Python tool calling agent, and compare their results in a Streamlit web interface.
+Python client for a Select AI Agent, and compare their results in a Streamlit web interface.
 
-Estimated Workshop Time: 120 minutes after prerequisites and model download.
+Estimated Workshop Time: 150 minutes after prerequisites and OCI access.
 Allow another 45–90 minutes for the optional IAM and TCPS extension.
 
 This workshop uses the folder, Markdown, manifest, and task conventions of the
@@ -40,7 +40,7 @@ The same broad SELECT is used for both users. Oracle evaluates the authenticated
 | 400 | Emma | DDS_EMMA | DDS_MARVIN | 80000 | ID-DEMO-0400 |
 | 500 | Taylor | DDS_TAYLOR | DDS_MARVIN | 85000 | ID-DEMO-0500 |
 
-The direct path is browser or CLI → successful local end user password authentication → identity and PDB verification → bounded database tool → Oracle DDS policy evaluation → authorized tool result → local Ollama Qwen3 8B model → answer. The model chooses a tool and optional employee ID; it cannot supply a database user, data role, or arbitrary SQL.
+The direct path is Streamlit or CLI → authenticated DDS end user → Select AI Agent RUN_TEAM in the same consumer session → invoker-rights PL/SQL tool → database data grants → authorized tool result → OCI Generative AI → answer. The model cannot supply a database identity or arbitrary SQL. The UI reads the actual session tool trace after the agent run.
 
 ![Identity and database enforcement flow](./images/architecture.svg)
 
@@ -54,24 +54,17 @@ the trusted identity and evaluates data grants before employee data reaches the 
 | 1 | Prepare the workspace and target PDB | 10 minutes |
 | 2 | Create users, data, roles, and data grants | 20 minutes |
 | 3 | Demonstrate SQL access and verify rollback | 20 minutes |
-| 4 | Install and verify the Python agent | 15 minutes plus downloads |
-| 5 | Ask the agent as each persona | 15 minutes |
+| 4 | Configure Select AI Agent and Python | 35 minutes after OCI access |
+| 5 | Ask the agent as each persona | 20 minutes |
 | 6 | Present the Streamlit interface | 15 minutes |
 | 7 | Optional explicit context propagation | 45–90 minutes |
 | 8 | Rehearse, reset, and clean up | 10 minutes |
 
 ## Validation status
 
-The original 19 offline application checks passed on the presenter environment.
-Live direct sign-in and deterministic table, view, sensitive-value, employee 300
-and salary-total checks passed for Emma and Marvin on Autonomous Database.
-Emma also passed all six live Qwen3 8B prompts in Streamlit. Marvin's live AI
-tests and the optional delegated IAM path have not yet been completed. Expected
-results below remain acceptance criteria; rerun the checks on your own target.
-The updated cleanup scripts are reviewed and guarded but have not been executed
-against the active demonstration database. See [validation status](../VALIDATION.md).
+The release uses Select AI Agent with a configurable OCI Generative AI model. Earlier database probes established the expected employee and manager baseline. Live OCI-backed inference is pending participant configuration; see VALIDATION.md and AI_VERIFICATION.md for the required evidence. Offline tests use fake services and do not establish DDS enforcement.
 
-You may now proceed to Getting Started.
+You may now proceed to the next lab.
 
 ## Acknowledgements
 

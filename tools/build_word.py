@@ -147,10 +147,10 @@ def markdown(text, new_page=False):
             if 'flow' in label.lower():
                 doc.add_paragraph('Streamlit or CLI → authenticated DDS end user → '
                                   'Autonomous Database data grants → authorized tool '
-                                  'results → local Ollama Qwen3 8B → AI response.')
+                                  'results → Select AI Agent with OCI Generative AI → AI response.')
             elif 'layout' in label.lower():
                 doc.add_paragraph('The sidebar holds sign-in controls. The main area '
-                                  'shows active identity, PDB, model and prompt, followed '
+                                  'shows active identity, PDB, AI provider and prompt, followed '
                                   'by database tool results, raw JSON and the AI answer.')
         elif line.startswith('#'):
             level = len(line) - len(line.lstrip('#'))
@@ -179,11 +179,11 @@ doc.add_paragraph(title, style='Title')
 doc.add_paragraph('Database setup Python AI agent and Streamlit interface', style='Subtitle')
 doc.add_paragraph('Build and present an employee and manager demonstration in which '
                   'Oracle enforces row and column authorization before data reaches '
-                  'a local Qwen3 8B model. This guide includes setup, SQL tests, wallet '
+                  'OCI Generative AI through Select AI Agent. This guide includes setup, SQL tests, wallet '
                   'configuration, runnable Python and Streamlit code, expected results '
                   'and ADMIN-based cleanup.')
 doc.add_paragraph('Audience  Database administrators developers and presenters')
-doc.add_paragraph('Duration  About 120 minutes after prerequisites and downloads')
+doc.add_paragraph('Duration  About 150 minutes after prerequisites and downloads')
 doc.add_paragraph('Updated  23 November 2026')
 doc.add_heading('How to use this guide', 1)
 doc.add_paragraph('Use the supplied ZIP or GitHub repository to run the files directly. '
@@ -225,7 +225,7 @@ groups = [
     ('Offline application tests', sorted((root / 'tests').glob('*.py'))),
     ('Runtime configuration and launchers', [root / p for p in (
         'config.env.example', '.streamlit/config.toml', 'requirements.txt',
-        'requirements-streamlit.txt', 'setup.sh', 'start_ollama.sh')]),
+        'requirements-streamlit.txt', 'setup.sh')]),
 ]
 for group, paths in groups:
     doc.add_heading(group, 2)

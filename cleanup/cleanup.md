@@ -28,9 +28,28 @@ Expect original values and `BASELINE_CHECK = PASS`. This reset changes salaries 
 
 ## Task 2: Close application and database sessions
 
-Sign out of Streamlit, stop its server with Ctrl+C, exit the CLI agent and disconnect DDS_OWNER and all end-user SQL sessions. Stop the Ollama launcher with Ctrl+C if it is no longer needed. Active sessions may prevent end-user deletion; close them rather than granting broader privileges.
+Sign out of Streamlit, stop its server with Ctrl+C, exit the CLI agent and disconnect DDS_OWNER and all end-user SQL sessions. Active sessions may prevent end-user deletion; close them rather than granting broader privileges.
 
-## Task 3: Remove the optional application account
+## Task 3: Remove the Select AI extension
+
+Close the app and end-user sessions. Connect as DDS_OWNER before removing that owner:
+
+```sql
+<copy>
+CONNECT DDS_OWNER@ADB_LAB
+@sql/97_cleanup_select_ai.sql
+CONNECT ADMIN@ADB_LAB
+@sql/96_cleanup_select_ai_admin.sql
+</copy>
+```
+
+Each script requires REMOVE_DDS_AI. Script 97 removes the named team, task, agent, tools, AI profile and supporting functions/package. Script 96 removes the owner resource-principal access, AI execution grants and dedicated AI role. It keeps the ADMIN resource principal and any shared OCI IAM configuration. Run these before the base owner is dropped. For AI-only removal, stop here and retain the base DDS demo.
+
+Inspect framework run history and conversation retention using your service documentation before removing the owner. The client drops its own conversation after every prompt; this does not certify that every framework audit/history record is purged. Do not delete all cloud operations in a shared database.
+
+After full lab removal, the OCI administrator can remove the dedicated DDS_ADB_DG policy and dynamic group only if created exclusively for this lab. No API key or dedicated AI cluster is created by these scripts.
+
+## Task 4: Remove the optional application account
 
 Only if Lab 7 created DDS_AGENT_APP, reconnect as ADMIN using SQLcl and the same wallet. For a new SQLcl process, repeat `SET CLOUDCONFIG` from Lab 1 first.
 
@@ -43,7 +62,7 @@ CONNECT ADMIN@ADB_LAB
 
 Type `REMOVE_DDS_AGENT_APP` to confirm. This script removes only that dedicated account. It does not disable or reconfigure any identity provider.
 
-## Task 4: Remove and verify the base lab
+## Task 5: Remove and verify the base lab
 
 ```sql
 <copy>
@@ -59,7 +78,7 @@ Expected: `PASS: dedicated DDS lab principals and objects removed.` followed by 
 
 Autonomous Database, its DATA tablespace, backups, network configuration and shared IAM configuration are retained. This workshop does not terminate the database. If the optional IAM extension changed provider settings, have its administrator restore the recorded configuration through the documented Autonomous API. Remove only lab-specific Entra registrations and secrets that are no longer needed.
 
-## Task 5: Retain or remove local files
+## Task 6: Retain or remove local files
 
 Keep the source and ZIP for future rehearsals. Run `deactivate` to leave the Python environment. Wallet files, downloaded wallet ZIPs and private credentials remain outside the distributed lab; remove your local copies only when no longer needed. Upload only the sanitized source package to GitHub.
 

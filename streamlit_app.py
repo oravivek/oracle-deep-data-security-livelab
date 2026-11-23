@@ -123,7 +123,7 @@ def run_request(database, prompt, *, probe=False):
         st.session_state["ai_response"] = ""
         st.session_state["request_error"] = (
             "The request did not finish. Check the database probe, then "
-            "confirm Ollama is running and the model is available. "
+            "check Select AI setup, shared profile/team access, OCI IAM and model availability. "
             "No completed AI response is shown.")
 
 
@@ -168,7 +168,9 @@ def main():
     identity, pdb, model = st.columns([1, 1, 1.3])
     identity.metric("Active identity", database.principal)
     pdb.metric("PDB", database.config.expected_pdb)
-    model.metric("Model", os.getenv("OLLAMA_MODEL", "qwen3:8b"))
+    model.metric("AI provider", "OCI Generative AI")
+    st.caption("Select AI Agent team: " + agent_runtime.TEAM +
+               " · Model is configured in the database AI profile.")
     st.caption("Identity verified by Oracle at sign-in and before every request. "
                "Every database tool checks it again before reading data.")
     st.session_state.setdefault("prompt", PROMPTS[0])

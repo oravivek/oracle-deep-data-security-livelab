@@ -7,7 +7,7 @@
 <text x="60" y="163" font-family="Arial,sans-serif" font-size="17">Oracle authenticates DDS_EMMA or DDS_MARVIN; the application verifies the PDB and identity.</text>
 <path d="M550 183 v20 l-5 -6 m5 6 l5 -6" fill="none" stroke="#8b4330" stroke-width="2"/>
 <rect x="40" y="210" width="1020" height="70" rx="5" fill="white" stroke="#bbb"/>
-<text x="60" y="238" font-family="Arial,sans-serif" font-size="20" font-weight="bold">2  The AI agent chooses a bounded database tool</text>
+<text x="60" y="238" font-family="Arial,sans-serif" font-size="20" font-weight="bold">2  Select AI Agent chooses an invoker-rights tool</text>
 <text x="60" y="263" font-family="Arial,sans-serif" font-size="17">The model cannot set a user or role, supply arbitrary SQL, or receive credentials.</text>
 <path d="M550 283 v20 l-5 -6 m5 6 l5 -6" fill="none" stroke="#8b4330" stroke-width="2"/>
 <rect x="40" y="310" width="1020" height="70" rx="5" fill="white" stroke="#bbb"/>
@@ -15,6 +15,6 @@
 <text x="60" y="363" font-family="Arial,sans-serif" font-size="17">The same SQL returns only authorized rows and permitted cell values.</text>
 <path d="M550 383 v20 l-5 -6 m5 6 l5 -6" fill="none" stroke="#8b4330" stroke-width="2"/>
 <rect x="40" y="410" width="1020" height="70" rx="5" fill="white" stroke="#bbb"/>
-<text x="60" y="438" font-family="Arial,sans-serif" font-size="20" font-weight="bold">4  Authorized tool data reaches the local model</text>
+<text x="60" y="438" font-family="Arial,sans-serif" font-size="20" font-weight="bold">4  Authorized tool data reaches OCI Generative AI</text>
 <text x="60" y="463" font-family="Arial,sans-serif" font-size="17">The CLI and Streamlit show the tool evidence alongside the AI response.</text>
 </svg>

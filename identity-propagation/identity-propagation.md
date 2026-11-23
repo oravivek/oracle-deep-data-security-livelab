@@ -14,7 +14,7 @@ Estimated Time: 45–90 minutes after IAM and TLS prerequisites.
 
 This lab assumes the following are complete:
 
-- Lab 4: Install and Verify the Python Agent
+- Lab 4: Configure Select AI Agent and Python
 - Database IAM trust and certificate validated TCPS
 
 ## Task 1: Establish the trust prerequisites

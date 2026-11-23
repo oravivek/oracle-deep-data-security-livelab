@@ -1,97 +1,43 @@
-# Oracle Autonomous Database 26ai Deep Data Security live lab
+# Oracle Autonomous Database 26ai Deep Data Security Live Lab
 
-Build database-enforced employee and manager authorization, connect a Python AI
-agent, and demonstrate the results in Streamlit. Oracle Autonomous Database 26ai
-enforces data grants before any employee data reaches the local **Qwen3 8B** LLM
-served by **Ollama**. All sample records and identifiers are synthetic.
+Demonstrate Emma and Marvin with **Streamlit → Select AI Agent → OCI Generative AI**. Autonomous Database enforces row and column data grants inside invoker-rights tools before authorized synthetic data reaches the LLM. The agent is implemented with DBMS_CLOUD_AI_AGENT, not a local Python orchestration loop.
 
-## Start here
+[Download the complete ZIP](https://github.com/oravivek/oracle-deep-data-security-livelab/raw/refs/heads/main/downloads/Oracle_Autonomous_Database_26ai_DDS_LiveLab.zip) · [Word guide](docs/Oracle_26ai_Deep_Data_Security_End_to_End_LiveLab.docx)
 
-Download the runnable [Autonomous Database lab ZIP](https://github.com/oravivek/oracle-deep-data-security-livelab/raw/refs/heads/main/downloads/Oracle_Autonomous_Database_26ai_DDS_LiveLab.zip).
+Start with [RUN_LAB.md](RUN_LAB.md), then follow the eleven pages in the [workshop manifest](workshops/livelabs/manifest.json). Open index.html for a self-contained preview. This custom workshop follows Oracle LiveLabs task structure and the supplied OCI Database Management sample.
 
-1. Open `index.html` for the self-contained LiveLabs-style workshop. Follow
-   Getting Started and Labs 1 through 6. Lab 7 is optional; Lab 8 is cleanup.
-2. Use [RUN_LAB.md](RUN_LAB.md) for the executable quick start.
-3. The complete Word guide is in
-   [docs/Oracle_26ai_Deep_Data_Security_End_to_End_LiveLab.docx](docs/Oracle_26ai_Deep_Data_Security_End_to_End_LiveLab.docx).
-   Its source listings are generated from the files in this repository.
+## Requirements
 
-## Prerequisites
+- Autonomous Database 26ai, ADMIN access, SQLcl, a downloaded mTLS wallet and the required Select AI sharing APIs.
+- OCI administrator access for a database-specific dynamic group and model-scoped Generative AI inference policy.
+- A Select AI-compatible, tool-capable OCI model available in the selected region. Set its exact ID, compartment and region in sql/15_select_ai_config.sql. No model is silently selected.
+- Python 3.15, bash/zsh and a browser. setup.sh retains the corrected binary-wheel installation; Python 3.12 is also supported.
 
-- An isolated Autonomous Database **26ai** with DDS available and ADMIN access.
-- A reachable database endpoint and its instance wallet for the main mTLS path.
-- Current SQLcl, Python **3.15**, bash or zsh, a browser and Ollama.
-- Internet for initial Python packages and the approximately 5.2 GB Qwen3 download.
+## Run order
 
-The main lab requires no external IAM, cloud LLM API key or Oracle Instant Client.
-It uses the existing DATA tablespace with a 10 MB DDS_OWNER quota. Setup and
-cleanup use ADMIN; application queries use DDS_EMMA or DDS_MARVIN.
-
-## Runtime setup
+1. Configure sql/00_config.sql and complete base database setup: 01/02 as ADMIN, 03/04 as DDS_OWNER.
+2. Run SQL employee/manager/outsider checks and preserve the expected baseline.
+3. Configure OCI IAM and sql/15_select_ai_config.sql. Run 16 as ADMIN; 17/18 as DDS_OWNER; 19 separately as Emma and Marvin.
+4. Run the following from the project root; edit an existing config.env rather than replacing it.
 
 ```bash
 bash setup.sh
 source .venv315/bin/activate
 cp config.env.example config.env
-# Edit the Autonomous alias, actual container name and wallet paths first.
+# Edit wallet connection values and PDB in config.env.
 chmod 600 config.env
 source config.env
-python -m unittest discover -s tests -v
 python agent/verify_live.py
-```
-
-In a separate terminal, start `bash start_ollama.sh` if no service is running.
-Download `qwen3:8b` using `ollama pull qwen3:8b` (or the installed local binary
-`.local/ollama/ollama`). Then launch:
-
-```bash
-source .venv315/bin/activate
-source config.env
 python -m streamlit run streamlit_app.py
 ```
 
-Open http://127.0.0.1:8501. Enter the chosen persona's database password and the
-wallet password. Sign-out clears credentials; enter the wallet password again
-when switching personas. Inspect database results before judging the AI answer.
+Open http://127.0.0.1:8501. Sign in with each persona's own database password and wallet password. Compare active identity, prompt, actual database tool results and AI response. Sign out before switching users.
 
-| Evidence | Emma | Marvin |
-| --- | --- | --- |
-| Visible IDs in table and view | 400 | 200, 400, 500 |
-| Own sensitive ID | Visible | Visible |
-| Team sensitive IDs | No team rows | NULL |
-| Employee 300 | No authorized row | No authorized row |
-| Count and salary total | 1 and 80000 | 3 and 285000 |
+| Identity | Visible employee IDs | Count | Salary total |
+| --- | --- | --- | --- |
+| DDS_EMMA | 400 | 1 | 80000 |
+| DDS_MARVIN | 200,400,500 | 3 | 285000 |
 
-## Contents and validation
+Marvin sees his own identifier; report identifiers are NULL. Employee 300 is invisible to both. The AI profile uses OCI$RESOURCE_PRINCIPAL; no OCI API keys, database passwords, wallets or config.env are included in the release.
 
-`sql/` contains setup, demo, reset, inspection and guarded cleanup scripts.
-`agent/`, `streamlit_app.py`, `tests/` and `.streamlit/` contain the runnable
-application. Eleven Markdown pages and `workshops/livelabs/manifest.json`
-provide the workshop. `tools/` contains validation, packaging, Word and preview
-builders. `config.env.example` contains placeholders only.
-
-Read [VALIDATION.md](VALIDATION.md) for observed tests and pending checks.
-Marvin's live AI suite and optional delegated IAM flow are not yet validated.
-Cleanup has not been executed against the active demo during this update.
-
-```bash
-python tools/validate_workshop.py
-python tools/validate_workshop.py --verify-checksums
-```
-
-For the Oracle-hosted renderer shell, serve the root with
-`python -m http.server 8000 --bind 127.0.0.1` and open
-http://127.0.0.1:8000/workshops/livelabs/. That shell downloads Oracle assets;
-the root `index.html` is the offline preview.
-
-This is a custom workshop following the supplied OCI Database Management sample,
-not a published Oracle LiveLabs catalog entry. The sample folder is unchanged.
-
-## Distribution
-
-Keep wallets, real config.env, passwords, tokens, model files, virtual environments
-and private live-test evidence outside GitHub and release archives. The supplied
-packager enforces exclusions and placeholder configuration. Each participant
-supplies their own database connection, wallet and credentials.
-
-See [BUILDING.md](BUILDING.md) to regenerate the Word document, preview and ZIP.
+See [AI_VERIFICATION.md](AI_VERIFICATION.md) and [VALIDATION.md](VALIDATION.md) for the distinction between offline checks, earlier database probes and pending live OCI inference. Cleanup removes only dedicated lab objects; follow the cleanup lab before deleting the owner. [BUILDING.md](BUILDING.md) explains Word, preview, checksum and ZIP generation.

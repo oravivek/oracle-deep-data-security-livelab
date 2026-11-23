@@ -89,7 +89,7 @@ class DatabaseTools:
         self.lookup_key = str(uuid.uuid4())
 
     @contextmanager
-    def connection(self):
+    def connection(self, *, read_only=True):
         """Fresh connection per tool; never falls back to an owner account."""
         db = driver()
         user = self.principal if self.mode == "direct" else "DDS_AGENT_APP"
@@ -108,8 +108,9 @@ class DatabaseTools:
                 # No extra data roles: existing user grants decide access.
                 connection.set_end_user_security_context(context)
                 context_attached = True
-            with connection.cursor() as cursor:
-                cursor.execute("SET TRANSACTION READ ONLY")
+            if read_only:
+                with connection.cursor() as cursor:
+                    cursor.execute("SET TRANSACTION READ ONLY")
             # Forces a round trip after context attachment, before data SQL.
             check_identity(connection, self.principal,
                            self.config.expected_pdb)

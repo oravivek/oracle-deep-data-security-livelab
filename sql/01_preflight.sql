@@ -31,11 +31,11 @@ BEGIN
     UNION ALL
     SELECT COUNT(*) FROM dba_roles
       WHERE role IN ('DDS_LOGIN_DB_ROLE','DDS_EMPLOYEE_ROLE',
-                     'DDS_MANAGER_ROLE','DDS_LOGIN_ONLY_ROLE')
+                     'DDS_MANAGER_ROLE','DDS_LOGIN_ONLY_ROLE','DDS_AI_DB_ROLE')
     UNION ALL
     SELECT COUNT(*) FROM dba_data_roles
       WHERE data_role IN ('DDS_LOGIN_DB_ROLE','DDS_EMPLOYEE_ROLE',
-                          'DDS_MANAGER_ROLE','DDS_LOGIN_ONLY_ROLE')
+                          'DDS_MANAGER_ROLE','DDS_LOGIN_ONLY_ROLE','DDS_AI_DB_ROLE')
   );
   IF l_count <> 0 THEN
     RAISE_APPLICATION_ERROR(-20006,'Demo names exist; review first');

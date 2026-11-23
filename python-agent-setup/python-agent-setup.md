@@ -1,72 +1,124 @@
-# Install and Verify the Python Agent
+# Configure Select AI Agent and the Python Client
 
 ## Introduction
 
-Install the runtime and validate database tools before model inference.
+Create an OCI-backed agent in Autonomous Database, then connect the Python client using each authenticated DDS end user.
 
-Estimated Time: 15 minutes plus download time.
+Estimated Time: 35 minutes after OCI permissions are available.
 
 ### Objectives
 
-- Install the environment and prove real database access before using an LLM.
+- Configure OCI inference, a shared AI profile, two invoker-rights tools and a sequential agent team.
+- Verify database tools independently of AI responses.
 
 ### Prerequisites
 
-This lab assumes the following are complete:
+- Complete Labs 1 through 3 and retain the successful Emma and Marvin SQL baselines.
+- An OCI administrator can configure a dynamic group and policy for this Autonomous Database.
 
-- Lab 3: Prove Employee and Manager Access with SQL
+## Task 1: Choose OCI inference settings
 
-## Task 1: Install the Python dependencies
+In OCI Console, open Generative AI in your chosen region. Select a currently available chat model that supports tool/function calling and is supported by Select AI Agent. Record its exact model ID, region and inference compartment OCID. Availability changes by region; a database in Phoenix can use a supported inference region subject to your network and residency requirements. Do not assume every model supports tools.
 
-Use the documented Python 3.15 path from the project root:
+Edit `sql/15_select_ai_config.sql` with those three public settings. All CHANGE_ME values must be replaced. This file controls the real model; Python has no model weights or OCI SDK credentials. For an example identifier, `meta.llama-3.3-70b-instruct` appears in Oracle's profile examples; confirm current availability and tool support before choosing it. The lab intentionally has no implicit model default.
+
+[Select AI Agent package](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/dbms-cloud-ai-agent-package.html), [OCI model availability](https://docs.oracle.com/en-us/iaas/Content/generative-ai/pretrained-models.htm)
+
+## Task 2: Configure OCI resource-principal permissions
+
+Create a dedicated dynamic group, for example DDS_ADB_DG, with a rule restricted to this database's resource OCID:
+
+```text
+<copy>
+ALL {resource.type = 'autonomousdatabase', resource.id = 'YOUR_ADB_OCID'}
+</copy>
+```
+
+Create a policy in a compartment where your OCI administrator can authorize the inference compartment. Replace the names and model ID:
+
+```text
+<copy>
+Allow dynamic-group DDS_ADB_DG to use generative-ai-chat in compartment YOUR_INFERENCE_COMPARTMENT where target.model.id = 'YOUR_APPROVED_MODEL_ID'
+</copy>
+```
+
+Allow time for IAM propagation. Verify no broader policy defeats the intended model restriction. Inference consumes OCI resources and can incur charges. Prompts and authorized synthetic tool data are sent from the database to the configured OCI Generative AI service. Keep real employee data out of this demonstration.
+
+The database administrator enables the database resource principal in script 16, grants access to DDS_OWNER, and gives the AI consumer role the corresponding credential privilege. Team/profile sharing alone does not grant credential access. The role reaches Emma and Marvin through DDS_EMPLOYEE_ROLE; it grants no extra employee rows or columns.
+
+If your Autonomous outbound network configuration requires a host ACL or private endpoint route, allow the selected regional inference HTTPS endpoint for DDS_OWNER and DDS_AI_DB_ROLE using your approved network configuration. Do not open all hosts to solve a connection error.
+
+[Resource-principal setup](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/resource-principal.html), [Model-level IAM policies](https://docs.oracle.com/en-us/iaas/Content/generative-ai/limit-model-access.htm)
+
+## Task 3: Create database tools and the shared team
+
+From the project root, open SQLcl without a password on its command line:
+
+```bash
+<copy>
+sql /nolog
+</copy>
+```
+
+In SQLcl, run the following. Replace ADB_LAB with your wallet alias; CONNECT prompts for the password. The existing `sql/00_config.sql` must contain the correct PDB guard.
+
+```sql
+<copy>
+CONNECT ADMIN@ADB_LAB
+@sql/16_select_ai_admin.sql
+CONNECT DDS_OWNER@ADB_LAB
+@sql/17_select_ai_tools.sql
+@sql/18_select_ai_team.sql
+</copy>
+```
+
+Script 16 first checks the required API surface, then creates DDS_AI_DB_ROLE, grants package execution through the employee data role, and prepares resource-principal access. It does not grant DML or broader employee data access. Scripts 17 and 18 create:
+
+| Object | Purpose |
+| --- | --- |
+| DDS_OWNER.DDS_AI_TOOLS | Session-local trace and fixed employee SELECTs; AUTHID CURRENT_USER |
+| DDS_LIST_EMPLOYEES / DDS_SALARY_SUMMARY | Invoker-rights standalone functions registered as tools |
+| DDS_OCI_PROFILE | OCI provider, resource principal, region, compartment, model, temperature 0 |
+| DDS_LIST_TOOL / DDS_SUMMARY_TOOL | Only two custom read tools; no arbitrary SQL tool |
+| DDS_HR_AGENT / DDS_HR_TASK / DDS_HR_TEAM | Single worker, sequential task, human interaction disabled |
+
+All custom functions use invoker rights. The owner stores definitions; the caller supplies the security context. The shared team runs in the initiating consumer session. No owner or ADMIN login is used by the application. GRANT_PROFILE_ACCESS and GRANT_TEAM_ACCESS target DDS_AI_DB_ROLE, which is granted to DDS_EMPLOYEE_ROLE. DDS_OUTSIDER receives neither AI role access nor data grants.
+
+The API preflight deliberately fails if profile/team sharing or GET_TEAM_STATE is missing. Request an Autonomous service update or support guidance; do not switch tools to definer rights. Oracle's maintained Python client confirms the profile-sharing parameter names used here: [Profile.grant_access source](https://github.com/oracle/python-select-ai/blob/main/src/select_ai/profile.py).
+
+The AI setup is a one-time extension of the base lab. For an existing installation, retain scripts 01 through 04 and run only 16 through 19. For a partial AI setup, inspect the failing object and remove the extension with scripts 97 and 96 before retrying. Do not rerun principal creation over existing identities.
+
+## Task 4: Verify the same PL/SQL tools as each consumer
+
+```sql
+<copy>
+CONNECT DDS_EMMA@ADB_LAB
+@sql/19_select_ai_consumer.sql
+CONNECT DDS_MARVIN@ADB_LAB
+@sql/19_select_ai_consumer.sql
+</copy>
+```
+
+The first two function calls require no LLM. The final RUN_TEAM call performs real OCI inference and prints its actual session tool trace and answer. Expected Emma summary: count 1, total 80000. Expected Marvin summary: count 3, total 285000. If the direct functions differ from Lab 3, stop and inspect data grants and invoker rights before any inference demonstration.
+
+## Task 5: Install Python and configure the connection
 
 ```bash
 <copy>
 bash setup.sh
 source .venv315/bin/activate
-python --version
 python -m pip check
-</copy>
-```
-
-Setup installs binary wheels with the supplied version pins: python-oracledb 26.1.0, Streamlit 1.67.0, pandas 3.1.1 and PyArrow 26.0.1 on Python 3.15. CMake is not needed. Use `PYTHON_BIN=/absolute/path/to/python3.15 bash setup.sh` to select an interpreter. The optional Python 3.12 compatibility path uses `.venv`; all workshop commands and the Word document use `.venv315`.
-
-The driver stays in Thin mode; do not call `init_oracle_client`. No Oracle Instant Client is needed. [Driver installation](https://python-oracledb.readthedocs.io/en/v26.1.0/user_guide/installation.html)
-
-## Task 2: Configure the connection
-
-```bash
-<copy>
 cp config.env.example config.env
-# Edit config.env with your actual connection values, then:
-source config.env
-</copy>
-```
-
-Edit these values in `config.env`, using the alias and absolute wallet path from Lab 1:
-
-```bash
-<copy>
-export ORACLE_DSN='youradb_high'
-export ORACLE_EXPECTED_PDB='YOUR_ACTUAL_PDB_NAME'
-export ORACLE_CONFIG_DIR='/absolute/path/to/Wallet_youradb'
-export ORACLE_WALLET_LOCATION='/absolute/path/to/Wallet_youradb'
-export OLLAMA_MODEL='qwen3:8b'
-</copy>
-```
-
-`ORACLE_CONFIG_DIR` locates `tnsnames.ora`; `ORACLE_WALLET_LOCATION` locates `ewallet.pem`. The app prompts for the wallet password and each persona's database password. Do not put passwords in this file. A full TCPS descriptor from OCI Database Connection may replace the TNS alias. Keep server DN matching enabled.
-
-```bash
-<copy>
+# Edit config.env with your actual wallet alias, PDB and absolute wallet paths.
 chmod 600 config.env
 source config.env
+python -m unittest discover -s tests -v
 </copy>
 ```
 
-The app does not automatically load dotenv files. Source the file in every terminal launching Python. The documented main path uses mTLS; a separately configured wallet-free TLS endpoint must follow the Autonomous connection guidance. [Autonomous connection support in the driver](https://python-oracledb.readthedocs.io/en/v26.1.0/user_guide/connection_handling.html#connecting-to-oracle-autonomous-database-adb)
+If config.env already exists, edit it rather than overwriting it. Remove any former local-model setting. The corrected Python 3.15 binary-wheel environment is retained; no CMake or local model installation is required. Optional Python 3.12 support uses `.venv` instead. Thin mode requires no Instant Client. The app prompts for the wallet password and the selected user's database password; neither belongs in config.env or Git.
 
-If Python on macOS reports a missing trusted CA bundle, use the maintained certifi bundle without disabling certificate verification:
+If macOS Python needs a trusted CA bundle, install certifi and set SSL_CERT_FILE without disabling verification:
 
 ```bash
 <copy>
@@ -75,69 +127,23 @@ export SSL_CERT_FILE="$(python -m certifi)"
 </copy>
 ```
 
-Repeat that export in each launching terminal if needed. It also lets urllib validate HTTPS certificates for the optional Entra token endpoint.
+Offline tests use mocks and do not certify OCI inference or DDS enforcement.
 
-## Task 3: Install and start the local model
-
-Install Ollama from https://ollama.com/download using the vendor installer for your operating system. Use the supplied launcher in a separate terminal if no Ollama service is already running. It binds to loopback, disables cloud features, and recognizes either a standard installation or the project-local runtime:
-
-```bash
-<copy>
-bash start_ollama.sh
-</copy>
-```
-
-Then download and inspect the model:
-
-```bash
-<copy>
-# Standard Ollama installation:
-ollama pull qwen3:8b
-ollama list
-# If using the project-local runtime already installed on the presenter Mac:
-# .local/ollama/ollama pull qwen3:8b
-# .local/ollama/ollama list
-</copy>
-```
-
-The agent calls http://127.0.0.1:11434/api/chat with tool schemas, stream false, think false, and temperature zero. Keep a current Ollama version supporting these options. The model runs on the Streamlit server’s machine, which may be different from the Oracle server. [Qwen3 8b model](https://ollama.com/library/qwen3:8b), [Ollama tool calling](https://docs.ollama.com/capabilities/tool-calling)
-
-## Task 4: Run syntax and offline checks
-
-```bash
-<copy>
-python -m py_compile agent/database.py agent/agent.py
-python -m py_compile agent/tokens.py agent/verify_live.py streamlit_app.py
-python -m unittest discover -s tests -v
-</copy>
-```
-
-Expected: syntax commands finish without errors and 19 tests pass. These tests use mock database and model services. They check identity guards, argument binding, failed sign-ins, user switching, current result display, and session separation; they do not validate Oracle DDS enforcement.
-
-## Task 5: Run deterministic real database probes
+## Task 6: Verify real Python access
 
 ```bash
 <copy>
 python agent/agent.py --user DDS_EMMA --probe
 python agent/agent.py --user DDS_MARVIN --probe
 python agent/verify_live.py
+python agent/agent.py --user DDS_EMMA --prompt 'Count my visible employees and total their salaries.'
+python agent/agent.py --user DDS_MARVIN --prompt 'Count my visible employees and total their salaries.'
 </copy>
 ```
 
-Enter the wallet password and matching database passwords when prompted. They are separate credentials. Each probe prints AUTHENTICATED with its verified persona, then TABLE, VIEW, EMPLOYEE_300, and SUMMARY results without invoking the model. The verifier prompts for both personas and must print PASS DDS_EMMA and PASS DDS_MARVIN.
+The probes must match the SQL baseline before running AI. Inference prints TOOL_RESULT records from the PL/SQL functions actually invoked by RUN_TEAM. Every prompt gets a new conversation and fresh authenticated connection. The client rejects an empty trace, a different principal, an unknown tool, too many tools, a non-SUCCEEDED state or an empty answer. It drops its conversation after the request. Framework run history is separate from the displayed trace; review database retention and access before adapting this synthetic lab to other data.
 
-| Evidence | Employee Emma | Manager Marvin |
-| --- | --- | --- |
-| Table and view IDs | 400 | 200, 400, 500 |
-| Own sensitive identifier | ID-DEMO-0400 | ID-DEMO-0200 |
-| Team sensitive identifiers | No team rows | NULL for 400 and 500 |
-| Employee 300 lookup | Empty rows | Empty rows |
-| Visible employee count | 1 | 3 |
-| Salary total | 80000 | 285000 |
-
-On the tested Autonomous release, manager team identifiers remain NULL through the view even when its `id_authorized` flag is true. Check actual values and use the base-table flag to diagnose column authorization.
-
-**Checkpoint** The live verifier passes. If it does not, fix the SQL baseline or connection settings before invoking the model. Inspect raw JSON null values; the words Restricted in a model answer alone are insufficient evidence.
+**Checkpoint** Both consumer SQL runs, both Python probes and both OCI-backed prompts complete with matching results. Do not treat an offline test pass as this checkpoint.
 
 You may now proceed to the next lab.
 

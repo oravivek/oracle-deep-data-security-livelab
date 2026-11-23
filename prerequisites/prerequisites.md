@@ -9,7 +9,7 @@ Estimated Time: 15 minutes excluding provisioning and downloads.
 ### Objectives
 
 - Confirm the database supports Deep Data Security.
-- Prepare ADMIN access, a wallet, SQLcl, Python and Ollama.
+- Prepare ADMIN access, a wallet, SQLcl, Python and OCI Generative AI access.
 
 
 ## Task 1: Prepare Autonomous Database
@@ -24,8 +24,8 @@ Estimated Time: 15 minutes excluding provisioning and downloads.
 ## Task 2: Prepare local tools
 
 1. Install a current SQLcl supporting `SET CLOUDCONFIG`, Python 3.15, a text editor, and a browser. Run commands in a POSIX shell such as bash or zsh.
-2. Install Ollama from https://ollama.com/download. The local LLM is **Qwen3 8B**, model tag `qwen3:8b`; its download is about 5.2 GB. Allow additional memory for inference. The tested presenter Mac has 16 GB RAM.
-3. Download packages and the model while internet access is available. The main lab requires no cloud LLM API key, external IAM integration or Oracle Instant Client. Python uses python-oracledb Thin mode.
+2. Arrange OCI Generative AI inference access for this database resource principal. Choose a currently available Select AI-compatible model supporting tools in your inference region. Lab 4 supplies the dynamic-group rule, model-scoped IAM policy, database grants and configuration. No local model download is required.
+3. Download Python packages while internet access is available. OCI inference uses the database resource principal, so no cloud LLM API key is stored in Python. No Oracle Instant Client is required; Python uses python-oracledb Thin mode.
 4. Prepare four distinct database passwords meeting the Autonomous password profile. The SQL substitution prompts support letters, digits, underscore and # only; start with a letter and use at least 16 mixed-case characters. Keep them separate from the wallet password.
 
 ## Task 3: Extract the project

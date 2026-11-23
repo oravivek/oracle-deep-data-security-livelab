@@ -34,7 +34,7 @@ Open http://127.0.0.1:8501 in your browser. The included .streamlit/config.toml 
 
 1. Select Employee · Emma in the sidebar, enter the DDS_EMMA password and the wallet password if configured, and click Sign in.
 2. Confirm Active identity is DDS_EMMA and PDB matches your lab. The persona selector grants no access without the corresponding valid password.
-3. Click Show database results. This fixed probe runs the table query, view query, employee 300 lookup, and salary summary without invoking Ollama. The Submitted prompt panel identifies the probe explicitly; the text box is not interpreted for this button.
+3. Click Show database results. This fixed probe runs the table query, view query, employee 300 lookup, and salary summary without invoking OCI Generative AI. The Submitted prompt panel identifies the probe explicitly; the text box is not interpreted for this button.
 4. Expect employee 400 only, own identifier visible, no employee 300, visible employees 1, and salary total 80,000. Expand Raw tool result and inspect the exact JSON.
 5. Choose Show all employee records and salaries available to me and click Run AI agent. Read the Submitted prompt, Database tool results on the left, and AI response on the right.
 6. Confirm the answer contains only values in the current authorized tool result. Repeat the employee 400 and employee 300 prompts.
@@ -49,6 +49,8 @@ Open http://127.0.0.1:8501 in your browser. The included .streamlit/config.toml 
 6. Try the view and adversarial prompts from Lab 5. The active identity must stay DDS_MARVIN and Chris must remain outside scope.
 
 ## Task 4: Explain session behavior
+
+Run AI agent calls the fixed DDS_OWNER.DDS_HR_TEAM through RUN_TEAM. The left panel shows the real tool trace from that consumer session; the right panel shows a response only after SUCCEEDED. The model is configured in DDS_OWNER.DDS_OCI_PROFILE. Show database results is a separately labeled diagnostic probe.
 
 The app reauthenticates before every request, and the adapter verifies identity again before data SQL. Each browser session holds its own adapter and credentials in server memory; there is no global cached connection or employee result. Signing out clears that session’s credentials and display. Reauthentication failure signs the user out. A model or tool failure removes an old answer and retains only completed tool results from the current request. Raw exception text is hidden.
 

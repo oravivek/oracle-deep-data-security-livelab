@@ -1,34 +1,9 @@
-# Validation status
+# Validation scope
 
-Updated 23 November 2026. Expected outputs in this workshop are acceptance
-criteria unless explicitly described here as observed.
+The Select AI migration includes offline tests for authenticated connections, wrong-PDB rejection, context teardown, bound prompt parameters, a fixed server-side team, invoker tool trace identity, failed inference cleanup, and Streamlit sign-in, switching and session isolation. See BUILD_VERIFICATION.txt for the actual release checks.
 
-## Observed live checks before this documentation update
+Earlier real Autonomous Database tests verified Emma sees only employee 400 and total 80000; Marvin sees 200,400,500 and total 285000; both cannot see 300; manager report identifiers are NULL. These remain expected results, not proof that the new OCI agent has run.
 
-- Autonomous Database reported version 23.26.4.1.0 with COMPATIBLE 23.5.0.
-- ADMIN successfully created the dedicated owner, local end users, roles,
-  synthetic data, view and data grants using the Autonomous setup statements.
-- Both Emma and Marvin signed in to Streamlit. Real table/view reads, hidden
-  sensitive values, employee 300 lookups, counts and salary totals matched
-  the documented baseline.
-- Six Emma prompts completed against local Ollama Qwen3 8B: broad records,
-  aggregate, own identifier, out-of-scope employee 300, view, and claimed
-  manager identity. Answers matched the current authorized tool results.
-- A request made before the model download completed failed; its retest passed.
+The current release has not executed scripts 16 through 19 or the cleanup extension against the database and has not completed live OCI inference. The connected SQLcl service stopped returning output during API inspection, and the chosen OCI region/compartment/model and wallet interaction are still needed for an end-to-end test. Scripts fail on missing APIs or failed compilation rather than silently falling back to a privileged account.
 
-## Limits and repeatable checks
-
-Marvin's AI prompt suite is pending wallet sign-in. Optional delegated IAM
-authentication has not been live-tested. Updated cleanup scripts have been
-reviewed and packaged but have not been run against the active demonstration
-database. No cleanup or identity-provider reconfiguration was performed as
-part of this file update.
-
-Before presenting on another target, run the SQL demos, owner baseline check,
-`python agent/verify_live.py`, and all six model prompts for both personas.
-Offline tests use fake services and do not establish Oracle authorization.
-
-Use `python -m unittest discover -s tests -v` for application checks,
-`python tools/validate_workshop.py` for package checks, and
-`python tools/validate_workshop.py --verify-checksums` for release integrity.
-Record the actual release verification in `BUILD_VERIFICATION.txt`.
+Before presenting, complete the checkpoints in Lab 4 and AI_VERIFICATION.md. Confirm shared profile, team, credential privileges and invoker-rights functions on your Autonomous update. Do not treat mock tests as evidence of database policy enforcement. Cleanup is intentionally not run against the active demo solely to validate packaging.
