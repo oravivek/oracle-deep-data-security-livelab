@@ -1,4 +1,4 @@
--- Connect as SYS AS SYSDBA. Dictionary queries are read-only.
+-- Connect as ADMIN. Dictionary queries are read-only.
 @@_session.sql
 @@_admin.sql
 SELECT username, account_status, authentication_type

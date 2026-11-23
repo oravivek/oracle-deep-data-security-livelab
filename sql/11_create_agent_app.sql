@@ -1,5 +1,5 @@
 -- OPTIONAL: only for the delegated/TLS/IAM path, not the direct demo.
--- Run as SYS AS SYSDBA after the baseline SQL kit is configured.
+-- Run as ADMIN after the baseline SQL kit is configured.
 @@_session.sql
 @@_admin.sql
 SPOOL OFF

@@ -22,33 +22,50 @@ This lab assumes the following are complete:
 This extension uses OAuth client credentials for an application token. It is not an OAuth on behalf of flow. The CLI first authenticates the local user directly, obtains the canonical user name, and then uses a shared DDS_AGENT_APP connection with an attached security context. The application is responsible for vouching for the authenticated local identity. [Local end user application authentication](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/configure-database-local-end-user-authentication.html), [Database IAM integration](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/configure-database-iam-integration.html)
 
 1. Have the database security and Entra administrators record existing provider settings before making changes in the isolated PDB.
-2. Configure a certificate validated TCPS listener and service. Make certificate trust and any required PEM wallet available to python-oracledb Thin mode. Confirm a normal Python connection over TCPS without disabling certificate checks. Follow the linked TLS guide for platform specific listener and certificate commands. [Database TLS configuration](https://docs.oracle.com/en/database/oracle/oracle-database/26/dbseg/configuring-transport-layer-security-encryption.html)
+2. Use the existing Autonomous certificate-validated TCPS service and wallet. Make the wallet available to python-oracledb Thin mode and confirm a normal connection using the configuration from Lab 4. Autonomous manages the database listener and server certificates; this lab configures only the client wallet and trust. [Autonomous connections with python-oracledb](https://python-oracledb.readthedocs.io/en/v26.1.0/user_guide/connection_handling.html#connecting-to-oracle-autonomous-database-adb)
 3. Register the database as an Entra resource. For the v1 token configuration shown here, use the HTTPS application ID URI and expose sessions:scope:connect as described in Oracle’s registration guide. Record tenant ID, database resource client ID, and application ID URI. [Register database in Entra](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/register-database-microsoft-entra-id.html)
 4. Register the confidential agent application, create its client secret, authorize it as a client of the database resource, add the database API permission, and grant administrator consent using Oracle’s application registration procedure. Human users remain local database end users. [Register application in Entra](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/register-application-microsoft-entra-id.html)
 5. Validate a client credentials token for the database resource. The audience must identify that resource, not Microsoft Graph or the agent application. The scope is the database application ID URI plus /.default. The token helper implements this request and does not log or persist the token. [Validate Entra configuration](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/validate-microsoft-entra-id-configuration.html)
 
-IAM and listener provisioning depend on your tenancy, certificate authority, and database deployment. Use the linked official procedures for those infrastructure steps; the runnable extension below assumes they have succeeded.
+Entra registration and database trust depend on your tenancy. Use the linked official procedures for those steps; the runnable extension below assumes they have succeeded. Keep the Autonomous connection settings from the main lab.
 
 ## Task 2: Configure the database provider and application user
 
-For a self managed database, substitute your recorded values and execute in the target PDB as its authorized administrator. The example uses the v1 HTTPS resource audience. Do not apply these ALTER SYSTEM statements to Autonomous AI Database; use its documented ADMIN API integration path instead. [Database IAM integration](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/configure-database-iam-integration.html)
+As ADMIN in the isolated Autonomous Database, first inspect the existing provider. Have the Entra and database security administrators complete the application and database resource registrations described in the linked DDS procedure. If the correct provider is already configured, skip the enable call.
 
 ```sql
 <copy>
-ALTER SYSTEM SET IDENTITY_PROVIDER_TYPE = AZURE_AD SCOPE=BOTH;
-ALTER SYSTEM SET IDENTITY_PROVIDER_CONFIG = '{
-  "application_id_uri": "<DATABASE_APP_ID_URI>",
-  "tenant_id": "<TENANT_ID>",
-  "app_id": "<DATABASE_RESOURCE_CLIENT_ID>"
-}' SCOPE=BOTH;
+CONNECT ADMIN@ADB_LAB
+SELECT name, value FROM v$parameter
+WHERE name IN ('identity_provider_type','identity_provider_config');
 </copy>
 ```
 
-In SQL*Plus at the project root, create the dedicated application account:
+For an unconfigured lab database using the documented Entra v1 HTTPS resource audience, replace the three placeholders and run:
 
 ```sql
 <copy>
-CONNECT SYS@DEMO_PDB AS SYSDBA
+BEGIN
+  DBMS_CLOUD_ADMIN.ENABLE_EXTERNAL_AUTHENTICATION(
+    type => 'AZURE_AD',
+    params => JSON_OBJECT(
+      'tenant_id' VALUE '<TENANT_ID>',
+      'application_id' VALUE '<DATABASE_RESOURCE_CLIENT_ID>',
+      'application_id_uri' VALUE '<DATABASE_APP_ID_URI>'
+    )
+  );
+END;
+/
+</copy>
+```
+
+The database resource client ID is distinct from the agent application's client ID. The `force` argument is deliberately omitted: do not overwrite an existing provider for this demo. Provider changes affect the database and require its administrator's planned change and restoration procedure. [DDS IAM integration for Autonomous](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/configure-database-iam-integration.html), [Autonomous external authentication API](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/dbms-cloud-admin.html)
+
+In SQLcl at the project root, create the dedicated application account:
+
+```sql
+<copy>
+CONNECT ADMIN@ADB_LAB
 @sql/11_create_agent_app.sql
 </copy>
 ```
@@ -61,10 +78,7 @@ In a terminal with the virtual environment active, set the TCPS connection and I
 
 ```bash
 <copy>
-export ORACLE_DSN='DEMO_PDB_TCPS'
-export ORACLE_CONFIG_DIR='/absolute/path/to/network-config'
-# If your configured TCPS connection requires a PEM wallet:
-# export ORACLE_WALLET_LOCATION='/absolute/path/to/pem-wallet'
+source config.env
 export ENTRA_TENANT_ID='your-tenant-guid'
 export ENTRA_CLIENT_ID='your-agent-application-client-guid'
 export ENTRA_DB_SCOPE='https://tenant.onmicrosoft.com/resource-guid/.default'
@@ -86,6 +100,8 @@ The complete implementation is in [agent/database.py](../agent/database.py). It 
 
 These are fresh standalone connections using a shared account, not a connection pool. A pooled adaptation must attach and verify on every acquisition and clear before release. Never accept an unverified prompt supplied user name as the context identity.
 
+This optional path is supplied for a tenancy with administrator-prepared Entra trust; it has not been live-validated in this workshop environment.
+
 **Checkpoint** Both delegated live checks pass and match direct mode. If context attachment fails, investigate token audience, trust, TCPS, and application privileges; do not grant shared manager access to bypass the failure. Reload your direct mode config.env before returning to the Streamlit lab if you want the original connection settings.
 
 You may now proceed to the next lab.
@@ -94,4 +110,4 @@ You may now proceed to the next lab.
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 22 November 2026
+- **Last Updated** - 23 November 2026

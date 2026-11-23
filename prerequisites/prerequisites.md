@@ -2,61 +2,40 @@
 
 ## Introduction
 
-Prepare your database and client tools before starting the timed labs. This
-workshop configures an existing database and does not provision OCI resources.
+Prepare an Oracle Autonomous Database 26ai and the local tools used to present the lab.
 
-Estimated Time: 10 minutes, excluding software installation.
+Estimated Time: 15 minutes excluding provisioning and downloads.
 
 ### Objectives
 
-- Verify database, client, model, and administrative prerequisites.
-- Locate the runnable files included in this workshop.
+- Confirm the database supports Deep Data Security.
+- Prepare ADMIN access, a wallet, SQLcl, Python and Ollama.
 
-### Prerequisites
 
-Have these prerequisites ready before starting the timed tasks.
+## Task 1: Prepare Autonomous Database
 
-1. An isolated Linux hosted Oracle AI Database with DDS available, version 23.26.2 or later as required by the direct logon guide. Confirm support in your chosen deployment. This lab configures an existing database; it does not install Oracle. [Oracle direct logon prerequisites](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/you-begin-l.html)
-2. SYS AS SYSDBA access to the target PDB for this lab’s bootstrap and cleanup, plus an existing ONLINE PERMANENT tablespace with at least 10 MB available. The default is USERS. Do not use a production schema.
-3. SQL*Plus, or a compatible current SQLcl. Commands here use SQL*Plus syntax. A PDB service reachable from the client and Python host is required. Do not connect to CDB$ROOT or PDB$SEED.
-4. Python 3.15, a POSIX shell such as bash or zsh, and permission to install packages in a virtual environment. The driver uses Thin mode and needs no Oracle Instant Client. [Python driver installation](https://python-oracledb.readthedocs.io/en/v26.1.0/user_guide/installation.html)
-5. Ollama installed from its official site on the machine running Python and Streamlit. The qwen3:8b download is about 5.2 GB; allow additional memory for inference. Internet access is needed for initial package and model downloads. [Qwen3 8b model](https://ollama.com/library/qwen3:8b)
-6. A text editor and a browser. No LLM API key or external IAM is required for the main path. The optional advanced lab requires Entra administrative support, database IAM trust, and certificate validated TCPS.
+1. Use an isolated Oracle Autonomous Database **26ai** with Deep Data Security available. This workshop configures an existing database and does not provision or terminate OCI resources.
+2. Obtain the ADMIN database password and permission to create dedicated demo principals. Setup and cleanup use ADMIN. All application queries use the authenticated end user.
+3. In OCI, confirm that your client can reach the database endpoint under its network access rules. A private endpoint needs a permitted network route. Use Database Connection to record the exact service and download the **instance wallet** for the main mTLS path. Keep its password private.
+4. Use the existing DATA tablespace. DDS_OWNER receives only a 10 MB quota there. No tablespace, listener, operating system or database parameter change is needed for the main path.
 
-Record your PDB name, service alias, host and port, tablespace, and four lab passwords securely. Passwords are entered at prompts and are not included in configuration files. Database DDL and security setup commit independently of rollback.
+[Autonomous Deep Data Security prerequisites](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/deep-data-security.html)
 
-## Task 1: Extract the workshop
+## Task 2: Prepare local tools
 
-1. Extract the workshop ZIP to a writable directory. The extracted project folder
-   is named `deep-data-security-livelabs`.
-2. Keep `sql`, `agent`, `tests`, `.streamlit`, and the configuration files together
-   at the project root. All shell and SQL client launch commands in the labs assume
-   that directory. No source copying from Word is needed.
-3. Open `index.html` for the included self-contained workshop preview, or serve
-   the root over HTTP to use the sample-compatible LiveLabs entry point.
+1. Install a current SQLcl supporting `SET CLOUDCONFIG`, Python 3.15, a text editor, and a browser. Run commands in a POSIX shell such as bash or zsh.
+2. Install Ollama from https://ollama.com/download. The local LLM is **Qwen3 8B**, model tag `qwen3:8b`; its download is about 5.2 GB. Allow additional memory for inference. The tested presenter Mac has 16 GB RAM.
+3. Download packages and the model while internet access is available. The main lab requires no cloud LLM API key, external IAM integration or Oracle Instant Client. Python uses python-oracledb Thin mode.
+4. Prepare four distinct database passwords meeting the Autonomous password profile. The SQL substitution prompts support letters, digits, underscore and # only; start with a letter and use at least 16 mixed-case characters. Keep them separate from the wallet password.
 
-## Task 2: Record your connection settings
+## Task 3: Extract the project
 
-1. Record the PDB service, actual PDB container name, host, port, tablespace, and
-   administrator access method. All personas must use the same PDB.
-2. Prepare four distinct lab passwords meeting the database password profile.
-   The SQL setup prompts specify the supported substitution characters.
-3. Review the optional IAM lab only if Entra administration and validated TCPS
-   are available. The main database, agent, and web labs do not need IAM.
+Extract the ZIP to a writable folder named `deep-data-security-livelabs`. Keep SQL helpers, agent code, tests and configuration together. Open `index.html` for the self-contained workshop preview. All commands assume the project root.
 
-## Task 3: Locate the implementation
-
-- [SQL setup and helpers](../sql/01_preflight.sql)
-- [Database adapter](../agent/database.py)
-- [Python agent](../agent/agent.py)
-- [Streamlit interface](../streamlit_app.py)
-- [Environment example](../config.env.example)
-- [Complete executable quick start](../RUN_LAB.md)
-
-You may now proceed to Lab 1.
+The Word document includes the full executable SQL and Python listings. The ZIP already contains those files, so no copying from Word is required. Follow Labs 1 through 6, optionally Lab 7, and finally Lab 8.
 
 ## Acknowledgements
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 22 November 2026
+- **Last Updated** - 23 November 2026

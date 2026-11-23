@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Create the principals, sample data, view, and data grants.
+Create the dedicated principals as ADMIN, then create the synthetic data, view and data grants as DDS_OWNER in Autonomous Database.
 
 Estimated Time: 20 minutes.
 
@@ -18,7 +18,7 @@ This lab assumes the following are complete:
 
 ## Task 1: Run the preflight and create principals
 
-From the SQL*Plus session at the project root:
+From the ADMIN SQLcl session at the project root, run the following once on a fresh lab:
 
 ```sql
 <copy>
@@ -27,7 +27,7 @@ From the SQL*Plus session at the project root:
 </copy>
 ```
 
-Preflight must report the expected PDB, a supported database banner, an ONLINE PERMANENT tablespace, and PASS for target, tablespace, and names. Inspect COMPATIBLE separately; it is not the RU number. The script displays it but does not upgrade or change it. The local tutorial notes a minimum of 20.0. Existing demo names stop setup; inspect them before rebuilding.
+Preflight must report the expected PDB, a supported database banner, an ONLINE PERMANENT tablespace, and PASS for target, tablespace, and names. Inspect COMPATIBLE separately; it is not the RU number. The script displays it but does not upgrade or change it. Use the Autonomous 26ai release with DDS available; do not change COMPATIBLE in this workshop. Existing demo names stop setup; inspect them before rebuilding.
 
 Enter four distinct passwords meeting the database profile. The SQL substitution prompts support letters, digits, underscore, and # only; begin with a letter and use at least 16 mixed case characters. Do not use &, quotes, whitespace, or shell supplied passwords in these prompts. Echo, verification, and spooling are disabled for entry.
 
@@ -44,11 +44,13 @@ Enter four distinct passwords meeting the database profile. The SQL substitution
 
 End users use CREATE END USER, not CREATE USER. The conventional login role is granted to data roles, then GRANT DATA ROLE assigns them to end users. Do not add ordinary object privileges to the login role. Chris and Taylor are data rows; they need no login accounts. [Create end users](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/create-end-user.html), [Grant database roles to data roles](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/grant-database-role-data-role.html)
 
+The compatibility files `12_autonomous_preflight.sql` and `13_autonomous_create_principals.sql` call these same scripts. Do not run both pairs. If the demo objects already exist, skip creation and verify the baseline instead.
+
 ## Task 2: Create the data and view
 
 ```sql
 <copy>
-CONNECT DDS_OWNER@DEMO_PDB
+CONNECT DDS_OWNER@ADB_LAB
 @sql/03_create_sample_data.sql
 </copy>
 ```
@@ -71,7 +73,7 @@ Expect four rows matching the scenario table and phone numbers 555-0200, 555-030
 
 The script enables SET USE DATA GRANTS ONLY on the base table through dynamic SQL so the SQL client sends the statement to the database. It then checks USER_DATA_GRANTS. USE_DATA_GRANTS_ONLY must be TRUE for EMPLOYEES. This protects the base table when accessed through the broad view in this demo. These rules govern DDS end users; the ordinary owner and administrator retain their conventional database access. [Create data grants](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/create-data-grants.html), [Mandatory data privileges](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/enforce-mandatory-data-privileges.html)
 
-**Checkpoint** Three data grants exist, mandatory base table enforcement is confirmed, and no unexpected setup errors occurred. Do not demonstrate restrictions using the schema owner or SYS.
+**Checkpoint** Three data grants exist, mandatory base table enforcement is confirmed, and no unexpected setup errors occurred. Do not demonstrate restrictions using the schema owner or ADMIN.
 
 ## Task 4: Review the complete setup scripts
 
@@ -91,4 +93,4 @@ You may now proceed to the next lab.
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 22 November 2026
+- **Last Updated** - 23 November 2026

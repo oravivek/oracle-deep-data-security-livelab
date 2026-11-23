@@ -1,4 +1,4 @@
-# Oracle AI Database 26ai Deep Data Security
+# Oracle Autonomous Database 26ai Deep Data Security
 
 ## About this Workshop
 
@@ -24,7 +24,7 @@ not been published in the Oracle LiveLabs catalog.
 
 ### Prerequisites
 
-An existing supported Oracle AI Database lab and local development tools are
+An existing Oracle Autonomous Database 26ai lab and local development tools are
 required. Complete [Getting Started](../prerequisites/prerequisites.md) before Lab 1.
 
 ## The employee and manager scenario
@@ -40,7 +40,7 @@ The same broad SELECT is used for both users. Oracle evaluates the authenticated
 | 400 | Emma | DDS_EMMA | DDS_MARVIN | 80000 | ID-DEMO-0400 |
 | 500 | Taylor | DDS_TAYLOR | DDS_MARVIN | 85000 | ID-DEMO-0500 |
 
-The direct path is browser or CLI → successful local end user password authentication → identity and PDB verification → bounded database tool → Oracle DDS policy evaluation → authorized tool result → local Ollama model → answer. The model chooses a tool and optional employee ID; it cannot supply a database user, data role, or arbitrary SQL.
+The direct path is browser or CLI → successful local end user password authentication → identity and PDB verification → bounded database tool → Oracle DDS policy evaluation → authorized tool result → local Ollama Qwen3 8B model → answer. The model chooses a tool and optional employee ID; it cannot supply a database user, data role, or arbitrary SQL.
 
 ![Identity and database enforcement flow](./images/architecture.svg)
 
@@ -62,9 +62,14 @@ the trusted identity and evaluates data grants before employee data reaches the 
 
 ## Validation status
 
-The 19 offline agent and Streamlit checks pass. Live Oracle authorization, IAM
-exchange, and Ollama inference were not run during preparation. Expected outputs
-are rehearsal acceptance criteria. Run the real database verifier before presenting.
+The original 19 offline application checks passed on the presenter environment.
+Live direct sign-in and deterministic table, view, sensitive-value, employee 300
+and salary-total checks passed for Emma and Marvin on Autonomous Database.
+Emma also passed all six live Qwen3 8B prompts in Streamlit. Marvin's live AI
+tests and the optional delegated IAM path have not yet been completed. Expected
+results below remain acceptance criteria; rerun the checks on your own target.
+The updated cleanup scripts are reviewed and guarded but have not been executed
+against the active demonstration database. See [validation status](../VALIDATION.md).
 
 You may now proceed to Getting Started.
 
@@ -72,4 +77,4 @@ You may now proceed to Getting Started.
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 22 November 2026
+- **Last Updated** - 23 November 2026

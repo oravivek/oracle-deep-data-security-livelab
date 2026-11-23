@@ -42,9 +42,9 @@ Open http://127.0.0.1:8501 in your browser. The included .streamlit/config.toml 
 ## Task 3: Switch to Marvin and compare
 
 1. Click Sign out and switch user. Confirm the old prompt, employee result, answer, and active login are cleared.
-2. Select Manager · Marvin, enter DDS_MARVIN’s password, and sign in. Confirm Active identity is DDS_MARVIN.
+2. Select Manager · Marvin, enter DDS_MARVIN’s database password and the wallet password again, and sign in. Confirm Active identity is DDS_MARVIN.
 3. Click Show database results. Expect IDs 200, 400, and 500, count 3, and total 285,000. Marvin’s identifier is visible; team identifiers display Restricted when the authorization flag is false.
-4. Expand Raw tool result. Emma’s and Taylor’s identifiers must remain JSON null. The UI display label does not replace the original database result.
+4. Expand Raw tool result. Emma’s and Taylor’s identifiers must remain JSON null in both table and view. On the tested release, the view authorization flag can be true while these values stay NULL; compare the actual returned values. The UI display label does not replace the original database result.
 5. Run the same natural language prompt and compare the answer with Emma’s. Then ask to show employee 400 including the sensitive identifier: Marvin may see her salary but must not receive her identifier.
 6. Try the view and adversarial prompts from Lab 5. The active identity must stay DDS_MARVIN and Chris must remain outside scope.
 
@@ -70,4 +70,4 @@ You may continue to the optional identity propagation lab or proceed directly to
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 22 November 2026
+- **Last Updated** - 23 November 2026

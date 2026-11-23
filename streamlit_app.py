@@ -131,7 +131,7 @@ def main():
     st.set_page_config(page_title="Oracle DDS demo", page_icon="\U0001f510",
                        layout="wide")
     st.title("Deep Data Security")
-    st.caption("Oracle AI Database 26ai · Employee and manager access demo")
+    st.caption("Oracle Autonomous Database 26ai · Employee and manager access demo")
 
     database = st.session_state.get("demo_database")
     with st.sidebar:

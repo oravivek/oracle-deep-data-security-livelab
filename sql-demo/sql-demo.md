@@ -20,7 +20,7 @@ This lab assumes the following are complete:
 
 ```sql
 <copy>
-CONNECT DDS_EMMA@DEMO_PDB
+CONNECT DDS_EMMA@ADB_LAB
 @sql/05_employee_demo.sql
 </copy>
 ```
@@ -40,7 +40,7 @@ Presenter explanation: “Emma submitted a broad query. Oracle returned her auth
 
 ```sql
 <copy>
-CONNECT DDS_MARVIN@DEMO_PDB
+CONNECT DDS_MARVIN@ADB_LAB
 @sql/06_manager_demo.sql
 </copy>
 ```
@@ -68,7 +68,7 @@ Emma’s salary becomes 81000 inside Marvin’s transaction and returns to 80000
 
 ```sql
 <copy>
-CONNECT DDS_OUTSIDER@DEMO_PDB
+CONNECT DDS_OUTSIDER@ADB_LAB
 @sql/07_no_data_grant_demo.sql
 </copy>
 ```
@@ -79,9 +79,9 @@ The identity check must succeed as DDS_OUTSIDER. Both queries must expose no emp
 
 ```sql
 <copy>
-CONNECT DDS_OWNER@DEMO_PDB
+CONNECT DDS_OWNER@ADB_LAB
 @sql/08_verify_baseline.sql
-CONNECT SYS@DEMO_PDB AS SYSDBA
+CONNECT ADMIN@ADB_LAB
 @sql/09_inspect_security.sql
 </copy>
 ```
@@ -102,4 +102,4 @@ You may now proceed to the next lab.
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 22 November 2026
+- **Last Updated** - 23 November 2026

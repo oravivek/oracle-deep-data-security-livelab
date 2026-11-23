@@ -1,0 +1,17 @@
+Oracle Autonomous Database 26ai DDS lab release verification
+Date: 23 November 2026
+
+PASS: 19 offline application tests using Python 3.15.
+PASS: pip check reports no broken requirements.
+PASS: bash syntax check for setup.sh and start_ollama.sh.
+PASS: 11 workshop pages and 22 SQL scripts; local links and helpers resolve.
+PASS: ADMIN guards; DATA tablespace default; guarded cleanup and verification.
+PASS: Word guide contains 35 complete source listings identical to files.
+PASS: Word rendered with bundled LibreOffice; all 43 page bodies visually reviewed.
+PASS: private database target and generated-password fingerprint scan.
+
+The ZIP is built from the explicit release inventory, then CRC and SHA256 checked.
+Live setup and probes previously passed on the configured Autonomous Database.
+Marvin AI inference and optional delegated IAM remain pending.
+Updated cleanup was not executed on the active demonstration database.
+See VALIDATION.md for details and limits.

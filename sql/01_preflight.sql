@@ -1,4 +1,4 @@
--- CONNECT SYS@DEMO_PDB AS SYSDBA first; password is prompted.
+-- Connect as ADMIN to the Autonomous Database PDB first.
 @@_session.sql
 @@_admin.sql
 SELECT SYS_CONTEXT('USERENV','CON_NAME') AS pdb,

@@ -1,65 +1,72 @@
-# Rehearse Reset and Clean Up
+# Rehearse reset and clean up Autonomous Database
 
 ## Introduction
 
-Repeat the demonstration or remove the dedicated workshop objects.
+Reset the synthetic values for another presentation or remove only the dedicated lab objects using ADMIN.
 
 Estimated Time: 10 minutes.
 
 ### Objectives
 
-- Leave a repeatable demo or remove its dedicated objects.
+- Rehearse without recreating principals.
+- Remove dedicated objects and verify their absence.
 
-### Prerequisites
 
-This lab assumes the following are complete:
+## Task 1: Rehearse or reset the baseline
 
-- Completed main labs
-- Optional Lab 7 only if you created its application account
-
-## Task 1: Rehearse the presenter sequence
-
-Use this sequence for a short end user presentation after setup. Show the scenario and scope, run the same broad SQL as Emma and Marvin, point out the hidden team identifiers, show the UI’s active identity, run the fixed database probe, ask the same salary question as each persona, and finish with the out of scope employee 300 prompt. Show raw results before discussing the model’s explanation.
-
-For a repeat session, run Labs 3 through 6 again without rerunning CREATE scripts. End all open transactions first. If someone committed a sample salary or phone edit, close the end user sessions and run:
+For another demonstration, repeat Labs 3 through 6 without rerunning CREATE scripts. Demo updates end in ROLLBACK. If someone committed a synthetic salary or phone change, close end-user sessions, connect as the owner and run:
 
 ```sql
 <copy>
-CONNECT DDS_OWNER@DEMO_PDB
+CONNECT DDS_OWNER@ADB_LAB
 @sql/10_reset_values.sql
 @sql/08_verify_baseline.sql
 </copy>
 ```
 
-Expect PASS and the original displayed values. The reset fixes salaries and phones only; it does not repair deleted rows, changed manager relationships, identities, or policy definitions.
+Expect original values and `BASELINE_CHECK = PASS`. This reset changes salaries and phones only; it does not repair deleted rows, relationships or policies. Use your actual wallet service alias in place of `ADB_LAB`.
 
-## Task 2: Stop the applications and remove the demo
+## Task 2: Close application and database sessions
 
-Sign out in Streamlit, press Ctrl+C in its terminal, exit CLI processes, and disconnect end user and owner database sessions. Active end user sessions can prevent account removal. Connect as SYS AS SYSDBA in the target PDB. If you created the optional application user, remove it first:
+Sign out of Streamlit, stop its server with Ctrl+C, exit the CLI agent and disconnect DDS_OWNER and all end-user SQL sessions. Stop the Ollama launcher with Ctrl+C if it is no longer needed. Active sessions may prevent end-user deletion; close them rather than granting broader privileges.
+
+## Task 3: Remove the optional application account
+
+Only if Lab 7 created DDS_AGENT_APP, reconnect as ADMIN using SQLcl and the same wallet. For a new SQLcl process, repeat `SET CLOUDCONFIG` from Lab 1 first.
 
 ```sql
 <copy>
-CONNECT SYS@DEMO_PDB AS SYSDBA
+CONNECT ADMIN@ADB_LAB
 @sql/98_cleanup_agent_app.sql
 </copy>
 ```
 
-Then remove the base lab:
+Type `REMOVE_DDS_AGENT_APP` to confirm. This script removes only that dedicated account. It does not disable or reconfigure any identity provider.
+
+## Task 4: Remove and verify the base lab
 
 ```sql
 <copy>
+CONNECT ADMIN@ADB_LAB
 @sql/99_cleanup.sql
+@sql/14_verify_cleanup.sql
 </copy>
 ```
 
-Type REMOVE_DDS_DEMO at the confirmation prompt only when you intend to delete these demo objects. The script drops the three dedicated end users, DDS_OWNER and its objects, the data roles, and the login database role. It does not drop the shared tablespace. DDL removal is not reversible with ROLLBACK.
+Type `REMOVE_DDS_DEMO` only when you intend to delete DDS_EMMA, DDS_MARVIN, DDS_OUTSIDER, DDS_OWNER and all its objects, the three data roles and the login database role. DDL deletion cannot be undone with ROLLBACK. The scripts first enforce ADMIN and the configured container name.
 
-If you used the optional IAM lab, restore the provider parameters you recorded and remove only the dedicated Entra registrations or secret and lab certificate material that are no longer needed. The SQL cleanup does not restore IAM configuration. Preserve infrastructure that predates this workshop. Keep the project source for future rehearsals and run deactivate to leave the virtual environment.
+Expected: `PASS: dedicated DDS lab principals and objects removed.` followed by `PASS: all dedicated lab principals removed`. The verifier also checks that the optional DDS_AGENT_APP is absent. If an error occurs, stop and inspect it; do not treat partial cleanup as success.
 
-You have completed the workshop. See Need Help for troubleshooting and additional references.
+Autonomous Database, its DATA tablespace, backups, network configuration and shared IAM configuration are retained. This workshop does not terminate the database. If the optional IAM extension changed provider settings, have its administrator restore the recorded configuration through the documented Autonomous API. Remove only lab-specific Entra registrations and secrets that are no longer needed.
+
+## Task 5: Retain or remove local files
+
+Keep the source and ZIP for future rehearsals. Run `deactivate` to leave the Python environment. Wallet files, downloaded wallet ZIPs and private credentials remain outside the distributed lab; remove your local copies only when no longer needed. Upload only the sanitized source package to GitHub.
+
+**Checkpoint** The cleanup verifier passes, or the lab is deliberately retained with its baseline verified for another session.
 
 ## Acknowledgements
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 22 November 2026
+- **Last Updated** - 23 November 2026

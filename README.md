@@ -1,131 +1,97 @@
-# Oracle AI Database 26ai Deep Data Security LiveLabs Workshop
+# Oracle Autonomous Database 26ai Deep Data Security live lab
 
-This package follows the supplied `oci-database-management` workshop structure:
-one directory and Markdown page per lab, timed tasks, objectives, prerequisites,
-copyable commands, local images, acknowledgements, and a JSON workshop manifest.
-The SQL, Python agent, Streamlit app, tests, and nonsecret configuration examples
-are included at the root. The original sample directory has not been modified.
+Build database-enforced employee and manager authorization, connect a Python AI
+agent, and demonstrate the results in Streamlit. Oracle Autonomous Database 26ai
+enforces data grants before any employee data reaches the local **Qwen3 8B** LLM
+served by **Ollama**. All sample records and identifiers are synthetic.
 
-## Set up the Python environment
+## Start here
 
-The lab now supports your installed **Python 3.15**. Run from this folder:
+Download the runnable [Autonomous Database lab ZIP](https://github.com/oravivek/oracle-deep-data-security-livelab/raw/refs/heads/main/downloads/Oracle_Autonomous_Database_26ai_DDS_LiveLab.zip).
+
+1. Open `index.html` for the self-contained LiveLabs-style workshop. Follow
+   Getting Started and Labs 1 through 6. Lab 7 is optional; Lab 8 is cleanup.
+2. Use [RUN_LAB.md](RUN_LAB.md) for the executable quick start.
+3. The complete Word guide is in
+   [docs/Oracle_26ai_Deep_Data_Security_End_to_End_LiveLab.docx](docs/Oracle_26ai_Deep_Data_Security_End_to_End_LiveLab.docx).
+   Its source listings are generated from the files in this repository.
+
+## Prerequisites
+
+- An isolated Autonomous Database **26ai** with DDS available and ADMIN access.
+- A reachable database endpoint and its instance wallet for the main mTLS path.
+- Current SQLcl, Python **3.15**, bash or zsh, a browser and Ollama.
+- Internet for initial Python packages and the approximately 5.2 GB Qwen3 download.
+
+The main lab requires no external IAM, cloud LLM API key or Oracle Instant Client.
+It uses the existing DATA tablespace with a 10 MB DDS_OWNER quota. Setup and
+cleanup use ADMIN; application queries use DDS_EMMA or DDS_MARVIN.
+
+## Runtime setup
 
 ```bash
 bash setup.sh
 source .venv315/bin/activate
-python --version
+cp config.env.example config.env
+# Edit the Autonomous alias, actual container name and wallet paths first.
+chmod 600 config.env
+source config.env
+python -m unittest discover -s tests -v
+python agent/verify_live.py
 ```
 
-The setup script defaults to `python3.15` and creates `.venv315` using that
-interpreter. It installs binary wheels, checks dependencies, and prints versions.
-The Python 3.15 requirements use Streamlit 1.67.0, pandas 3.1.1, and PyArrow
-26.0.1. These replace the older dependency restrictions that triggered a source
-build. CMake is not required. No system-wide Python package changes are made.
-
-For a custom interpreter path, set `PYTHON_BIN=/absolute/path/to/python3.15` when
-running setup. The optional original Python 3.12 environment remains available
-with `PYTHON_BIN=python3.12 bash setup.sh` and `source .venv/bin/activate`.
-Requirements select the older Streamlit release only on Python below 3.15.
-
-The included Word document records the original Python 3.12 setup. Use this
-README, the Markdown labs, and the bundled requirements for the Python 3.15
-installation and launch commands; the database and agent workflow is unchanged.
-
-## View the workshop
-
-**Self-contained preview:** open `index.html` in your browser. It includes local
-navigation, collapsible tasks, copy buttons, and all workshop text and diagrams.
-It works directly from disk without downloading the Oracle renderer assets.
-
-**Sample-compatible LiveLabs entry point:** from this directory run:
+In a separate terminal, start `bash start_ollama.sh` if no service is running.
+Download `qwen3:8b` using `ollama pull qwen3:8b` (or the installed local binary
+`.local/ollama/ollama`). Then launch:
 
 ```bash
-python3 -m http.server 8000 --bind 127.0.0.1
+source .venv315/bin/activate
+source config.env
+python -m streamlit run streamlit_app.py
 ```
 
-Then open http://127.0.0.1:8000/workshops/livelabs/ . This entry point reuses the
-sample's Oracle Redwood LiveLabs shell and public Oracle JavaScript/CSS URLs;
-internet access is required for those assets. If your network blocks them,
-use http://127.0.0.1:8000/ for the self-contained preview. Stop with Ctrl+C.
-The server is bound to your own computer and does not publish the workshop.
+Open http://127.0.0.1:8501. Enter the chosen persona's database password and the
+wallet password. Sign-out clears credentials; enter the wallet password again
+when switching personas. Inspect database results before judging the AI answer.
 
-The authoritative content is `workshops/livelabs/manifest.json` and the Markdown
-pages it references. `index.html` is a generated local preview; rebuild it after
-editing Markdown with `tools/build-preview.mjs` as described below.
+| Evidence | Emma | Marvin |
+| --- | --- | --- |
+| Visible IDs in table and view | 400 | 200, 400, 500 |
+| Own sensitive ID | Visible | Visible |
+| Team sensitive IDs | No team rows | NULL |
+| Employee 300 | No authorized row | No authorized row |
+| Count and salary total | 1 and 80000 | 3 and 285000 |
 
-## Run the lab
+## Contents and validation
 
-Start with Introduction and Getting Started in the workshop. Follow Labs 1–6
-for the main database, Python, and Streamlit demonstration. Lab 7 is optional
-IAM/TCPS identity propagation; Lab 8 resets or removes the dedicated demo.
+`sql/` contains setup, demo, reset, inspection and guarded cleanup scripts.
+`agent/`, `streamlit_app.py`, `tests/` and `.streamlit/` contain the runnable
+application. Eleven Markdown pages and `workshops/livelabs/manifest.json`
+provide the workshop. `tools/` contains validation, packaging, Word and preview
+builders. `config.env.example` contains placeholders only.
 
-All shell commands run from this project root. Configure `sql/00_config.sql`
-and create `config.env` from `config.env.example` before connecting. Database,
-Ollama, and Python prerequisites are explained in the labs and [RUN_LAB.md](RUN_LAB.md).
-No source copying from the included Word document is needed.
-
-## Structure
-
-```text
-deep-data-security-livelabs/
-  introduction/introduction.md
-  introduction/images/architecture.svg
-  prerequisites/prerequisites.md
-  prepare-workspace/prepare-workspace.md
-  database-setup/database-setup.md
-  sql-demo/sql-demo.md
-  sql-demo/images/access-comparison.svg
-  python-agent-setup/python-agent-setup.md
-  ai-agent-demo/ai-agent-demo.md
-  streamlit-demo/streamlit-demo.md
-  streamlit-demo/images/interface-layout.svg
-  identity-propagation/identity-propagation.md
-  cleanup/cleanup.md
-  need-help/need-help.md
-  workshops/livelabs/index.html
-  workshops/livelabs/manifest.json
-  sql/                         all 18 SQL files
-  agent/                       Python adapter agent token helper and live verifier
-  tests/                       19 offline checks
-  .streamlit/config.toml
-  streamlit_app.py
-  requirements.txt
-  requirements-streamlit.txt
-  config.env.example
-  setup.sh                     Python 3.15 environment installer
-  docs/                        end-to-end Word lab
-  index.html                   self-contained workshop preview
-  RUN_LAB.md                   executable quick start
-  tools/                       validation and preview builders
-  SHA256SUMS.txt
-```
-
-## Validate or update the workshop
+Read [VALIDATION.md](VALIDATION.md) for observed tests and pending checks.
+Marvin's live AI suite and optional delegated IAM flow are not yet validated.
+Cleanup has not been executed against the active demo during this update.
 
 ```bash
-python3 tools/validate_workshop.py
+python tools/validate_workshop.py
+python tools/validate_workshop.py --verify-checksums
 ```
 
-This checks manifest paths, copy tags, local Markdown resources, script inclusion,
-and Python syntax. To rebuild only the preview after editing content, install
-`marked@17.0.5` with Node.js 20 or later in a separate tools environment and make it available
-to the builder (the lab runtime itself requires no Node.js):
+For the Oracle-hosted renderer shell, serve the root with
+`python -m http.server 8000 --bind 127.0.0.1` and open
+http://127.0.0.1:8000/workshops/livelabs/. That shell downloads Oracle assets;
+the root `index.html` is the offline preview.
 
-```bash
-npm install --prefix /path/to/livelabs-preview-tools marked@17.0.5
-node tools/build-preview.mjs /path/to/livelabs-preview-tools/node_modules/marked/lib/marked.esm.js
-```
+This is a custom workshop following the supplied OCI Database Management sample,
+not a published Oracle LiveLabs catalog entry. The sample folder is unchanged.
 
-After changing package files, regenerate `SHA256SUMS.txt` before redistribution:
+## Distribution
 
-```bash
-python3 tools/validate_workshop.py --write-checksums
-```
+Keep wallets, real config.env, passwords, tokens, model files, virtual environments
+and private live-test evidence outside GitHub and release archives. The supplied
+packager enforces exclusions and placeholder configuration. Each participant
+supplies their own database connection, wallet and credentials.
 
-The offline application tests use mock database and model services. Live Oracle,
-IAM, and Ollama checks still require your configured environment. No credentials,
-edited config.env, wallets, tokens, virtual environment, or models are packaged.
-
-This is a custom workshop package, not a published Oracle LiveLabs catalog entry.
-No help mailbox is configured because a published workshop support owner has
-not been assigned. The Need Help page provides local diagnostics and references.
+See [BUILDING.md](BUILDING.md) to regenerate the Word document, preview and ZIP.

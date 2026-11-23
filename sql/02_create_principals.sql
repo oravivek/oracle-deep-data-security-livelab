@@ -1,4 +1,6 @@
--- Run once as SYS AS SYSDBA in the same PDB, after 01_preflight.sql.
+-- Run once as ADMIN after 01_preflight.sql.
+-- Creates dedicated DDS_OWNER, DDS_EMMA, DDS_MARVIN, DDS_OUTSIDER
+-- and four roles, with a 10 MB DATA quota; no existing objects replaced.
 @@_session.sql
 @@_admin.sql
 SPOOL OFF

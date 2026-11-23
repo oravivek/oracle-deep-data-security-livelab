@@ -1,74 +1,74 @@
-# Prepare the workspace and target PDB
+# Prepare the Autonomous Database connection
 
 ## Introduction
 
-Open the included executable files and confirm the target PDB.
+Open the supplied files and establish a wallet-protected ADMIN session in the intended database.
 
 Estimated Time: 10 minutes.
 
 ### Objectives
 
-- Create every source file and confirm that the client reaches the intended PDB.
+- Configure SQLcl and record the real container name.
+- Set the shared SQL target guard.
 
-### Prerequisites
 
-This lab assumes the following are complete:
-
-- Getting Started
-
-## Task 1: Open the supplied project
-
-1. Extract the complete workshop archive. Open a terminal in its
-   `deep-data-security-livelabs` project root.
-2. Confirm the implementation files are present. Substitute your actual
-   extraction location for the example path.
+## Task 1: Open the project and prepare the wallet
 
 ```bash
 <copy>
 cd /path/to/deep-data-security-livelabs
 ls sql agent tests streamlit_app.py config.env.example
+mkdir -p "$HOME/.oracle-wallets/Wallet_youradb"
+chmod 700 "$HOME/.oracle-wallets/Wallet_youradb"
+unzip /path/to/Wallet_youradb.zip -d "$HOME/.oracle-wallets/Wallet_youradb"
+chmod 600 "$HOME/.oracle-wallets/Wallet_youradb/"*
 </copy>
 ```
 
-3. Use the supplied scripts directly. Keep SQL helpers next to the main scripts;
-   do not create a second empty project or copy source from the Word document.
+Use your actual downloaded wallet and a new destination directory. Keep wallets outside the project and GitHub. The extracted wallet must contain `tnsnames.ora` and `ewallet.pem` for the Python Thin mTLS path. Protect the downloaded ZIP as well. Use OCI's connection instructions if your wallet lacks the PEM file; do not disable TLS checks to work around it.
 
-## Task 2: Identify the PDB and edit configuration
+## Task 2: Connect with SQLcl
 
-In the terminal, start SQL*Plus from the project root:
+Start SQLcl from the project root:
 
 ```bash
 <copy>
-sqlplus /nolog
+sql /nolog
 </copy>
 ```
 
-Replace DEMO_PDB in every CONNECT command with your actual PDB TNS alias or Easy Connect service. Passwords will be prompted. For example, the service can be //dbhost:1521/pdb_service.
+Use the original wallet ZIP with SQLcl. Replace the paths and `youradb_high` alias with values from your wallet. `ADB_LAB` in subsequent CONNECT examples means this same actual alias; replace it everywhere.
 
 ```sql
 <copy>
-CONNECT SYS@DEMO_PDB AS SYSDBA
-SELECT SYS_CONTEXT('USERENV','CON_NAME') AS pdb_name,
+SET CLOUDCONFIG /absolute/path/to/Wallet_youradb.zip
+CONNECT ADMIN@youradb_high
+SELECT SYS_CONTEXT('USERENV','SESSION_USER') AS db_user,
+       SYS_CONTEXT('USERENV','CON_NAME') AS pdb_name,
        SYS_CONTEXT('USERENV','SERVICE_NAME') AS service_name
 FROM dual;
 </copy>
 ```
 
-Edit sql/00_config.sql. Set dds_expected_pdb to the returned container name, not the alias. Set dds_tablespace to an existing simple unquoted tablespace name. All scripts read this file and reject a wrong PDB or an unchanged placeholder.
+Enter the ADMIN database password when prompted. The wallet password, when requested by a client, is a separate credential. Every persona uses the same Autonomous Database service and wallet; only its database username and password change.
+
+## Task 3: Set the SQL target guard
+
+Edit `sql/00_config.sql` with the returned container name, not the TNS alias or service:
 
 ```sql
 <copy>
 DEFINE dds_expected_pdb = YOUR_ACTUAL_PDB_NAME
-DEFINE dds_tablespace = USERS
+DEFINE dds_tablespace = DATA
 </copy>
 ```
 
-**Checkpoint** You are connected as SYS AS SYSDBA to the intended PDB, all listings have been saved, and the configuration matches this PDB. A script error can exit SQL*Plus; reconnect before retrying. Helper references use @@ so they resolve relative to the calling file.
+All SQL scripts load this configuration and stop if the target does not match. Keep the full SQL directory together because `@@` resolves helper paths relative to each script.
 
-You may now proceed to the next lab.
+**Checkpoint** The database user is ADMIN, the container is your Autonomous Database, and the SQL configuration contains its actual name. Leave this SQLcl session open for Lab 2.
 
 ## Acknowledgements
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 22 November 2026
+- **Last Updated** - 23 November 2026

@@ -55,7 +55,7 @@ img{display:block;max-width:100%;height:auto;margin:25px 0}.page-nav{display:fle
 <aside><h2>${escape(manifest.workshoptitle)}</h2><nav aria-label="Workshop labs">${nav}</nav></aside>
 <main><div class="breadcrumb" id="breadcrumb">Introduction</div><div class="controls" id="controls"></div>
 ${pages.join('\n')}<div class="page-nav" id="page-nav"></div>
-<footer>Custom workshop content · Updated 22 November 2026 · Expected results must be verified in your configured lab.</footer></main>
+<footer>Custom workshop content · Updated 23 November 2026 · Expected results must be verified in your configured lab.</footer></main>
 <script>
 const labs=[...document.querySelectorAll('article.lab')];
 labs.forEach(lab=>{

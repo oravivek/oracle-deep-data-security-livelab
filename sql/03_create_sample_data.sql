@@ -1,4 +1,4 @@
--- Connect as DDS_OWNER, not SYS.
+-- Connect as DDS_OWNER in the configured Autonomous Database.
 @@_session.sql
 @@_owner.sql
 CREATE TABLE DDS_OWNER.EMPLOYEES (

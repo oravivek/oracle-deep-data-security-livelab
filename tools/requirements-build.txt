@@ -1,0 +1,2 @@
+# Optional document authoring dependency; not required by the app.
+python-docx>=1.2,<2
