@@ -1,0 +1,60 @@
+{
+    "workshoptitle": "Oracle AI Database 26ai Deep Data Security",
+    "tutorials": [
+        {
+            "title": "Introduction",
+            "description": "Workshop scenario, architecture, and objectives.",
+            "filename": "../../introduction/introduction.md"
+        },
+        {
+            "title": "Getting Started",
+            "description": "Database and client prerequisites.",
+            "filename": "../../prerequisites/prerequisites.md"
+        },
+        {
+            "title": "Lab 1: Prepare the workspace and target PDB",
+            "description": "Open the included executable files and confirm the target PDB.",
+            "filename": "../../prepare-workspace/prepare-workspace.md"
+        },
+        {
+            "title": "Lab 2: Build the Database Security Model",
+            "description": "Create the principals, sample data, view, and data grants.",
+            "filename": "../../database-setup/database-setup.md"
+        },
+        {
+            "title": "Lab 3: Prove Employee and Manager Access with SQL",
+            "description": "Compare authorized rows, hidden cells, and update permissions.",
+            "filename": "../../sql-demo/sql-demo.md"
+        },
+        {
+            "title": "Lab 4: Install and Verify the Python Agent",
+            "description": "Install the runtime and validate database tools before model inference.",
+            "filename": "../../python-agent-setup/python-agent-setup.md"
+        },
+        {
+            "title": "Lab 5: Ask the AI Agent as Each Persona",
+            "description": "Compare model answers with the authorized database tool results.",
+            "filename": "../../ai-agent-demo/ai-agent-demo.md"
+        },
+        {
+            "title": "Lab 6: Present the Streamlit Web Interface",
+            "description": "Demonstrate identity, prompt, tool results, and AI response in the browser.",
+            "filename": "../../streamlit-demo/streamlit-demo.md"
+        },
+        {
+            "title": "Lab 7: Optional Explicit End User Context Propagation",
+            "description": "Attach a verified local identity through an IAM trusted shared application account.",
+            "filename": "../../identity-propagation/identity-propagation.md"
+        },
+        {
+            "title": "Lab 8: Rehearse Reset and Clean Up",
+            "description": "Repeat the demonstration or remove the dedicated workshop objects.",
+            "filename": "../../cleanup/cleanup.md"
+        },
+        {
+            "title": "Need Help?",
+            "description": "Troubleshooting, acceptance criteria, and references.",
+            "filename": "../../need-help/need-help.md"
+        }
+    ]
+}

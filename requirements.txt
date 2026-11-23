@@ -1,0 +1,2 @@
+# Stable driver API used by the optional explicit-context path.
+oracledb==26.1.0

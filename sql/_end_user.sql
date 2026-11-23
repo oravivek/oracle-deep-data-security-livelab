@@ -1,0 +1,15 @@
+SELECT JSON_VALUE(ORA_END_USER_CONTEXT, '$.USERNAME'
+         RETURNING VARCHAR2(128)) AS active_end_user
+FROM dual;
+DECLARE
+  l_name VARCHAR2(128);
+BEGIN
+  SELECT JSON_VALUE(ORA_END_USER_CONTEXT, '$.USERNAME'
+           RETURNING VARCHAR2(128))
+    INTO l_name FROM dual;
+  IF l_name IS NULL OR UPPER(l_name) <> '&&dds_expected_end_user'
+     OR SYS_CONTEXT('USERENV','ISDBA') = 'TRUE' THEN
+    RAISE_APPLICATION_ERROR(-20004,'Wrong end user context');
+  END IF;
+END;
+/

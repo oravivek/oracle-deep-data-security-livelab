@@ -1,0 +1,9 @@
+.venv/
+.venv315/
+__pycache__/
+*.pyc
+config.env
+*.log
+~$*
+
+.local/
