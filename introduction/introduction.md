@@ -68,6 +68,5 @@ You may now proceed to the next lab.
 
 ## Acknowledgements
 
-- **Prepared for** - Vivek Verma
-- **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 23 November 2026
+- **Author** - Vivek Verma, Master Principal Cloud Architect
+- **Last Updated By/Date** - Vivek Verma, Master Principal Cloud Architect, Nov 2026
