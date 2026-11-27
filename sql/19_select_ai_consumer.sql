@@ -16,6 +16,7 @@ DECLARE
   c VARCHAR2(128);
   params CLOB;
   state VARCHAR2(100);
+  failure_stack VARCHAR2(32767);
 BEGIN
   DDS_OWNER.DDS_AI_TOOLS.reset_trace;
   c := DBMS_CLOUD_AI.CREATE_CONVERSATION();
@@ -31,8 +32,9 @@ BEGIN
       RAISE_APPLICATION_ERROR(-20027,'Agent did not succeed');
     END IF;
   EXCEPTION WHEN OTHERS THEN
-    -- Preserve the task error even if DDS conversation cleanup also fails.
-    DBMS_OUTPUT.PUT_LINE('ORIGINAL_FAILURE: '||DBMS_UTILITY.FORMAT_ERROR_STACK);
+    -- Save before cleanup can clear Oracle's active exception stack.
+    failure_stack := DBMS_UTILITY.FORMAT_ERROR_STACK;
+    DBMS_OUTPUT.PUT_LINE('ORIGINAL_FAILURE: '||failure_stack);
     DBMS_OUTPUT.PUT_LINE(DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
     DBMS_OUTPUT.PUT_LINE('CONVERSATION_ID: '||c);
     BEGIN
@@ -46,7 +48,8 @@ BEGIN
     EXCEPTION WHEN OTHERS THEN
       DBMS_OUTPUT.PUT_LINE('CLEANUP_FAILED (original error retained): '||SQLERRM);
     END;
-    RAISE;
+    -- A bare RAISE here can produce ORA-21002 after failed cleanup.
+    RAISE_APPLICATION_ERROR(-20028,SUBSTR(failure_stack,1,450),FALSE);
   END;
   DBMS_CLOUD_AI.DROP_CONVERSATION(c,TRUE);
 END;

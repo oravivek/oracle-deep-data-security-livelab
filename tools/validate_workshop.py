@@ -67,6 +67,10 @@ consumer_sql = (root / 'sql/19_select_ai_consumer.sql').read_text()
 assert not re.search(r":=\s*JSON_OBJECT\([^;]*RETURNING\s+CLOB", consumer_sql, re.I)
 assert re.search(r"SELECT\s+JSON_OBJECT\('conversation_id' VALUE c RETURNING CLOB\)"
                  r"\s+INTO params FROM dual", consumer_sql, re.I)
+# Nested cleanup may clear the active Oracle exception (ORA-21002).
+assert not re.search(r'^\s*RAISE\s*;', consumer_sql, re.M | re.I)
+assert 'failure_stack := DBMS_UTILITY.FORMAT_ERROR_STACK;' in consumer_sql
+assert 'RAISE_APPLICATION_ERROR(-20028,SUBSTR(failure_stack,1,450),FALSE);' in consumer_sql
 files = [p for p in release_files(root) if p.name != 'SHA256SUMS.txt']
 if args.release:
     assert 'CHANGE_ME_PDB' in (root / 'sql/00_config.sql').read_text()

@@ -19,3 +19,9 @@ Runtime diagnostic correction: preserve the original agent exception when
 DROP_CONVERSATION also fails. Added a regression test and scoped owner history script 20.
 User output confirms RUN_TEAM failed with ORA-20053; the runtime cause is unresolved.
 21 offline tests pass. No successful live agent execution is claimed.
+
+27 November 2026 follow-up: save the SQL error stack before cleanup and raise
+ORA-20028 explicitly; a bare RAISE after cleanup produced ORA-21002.
+PASS: isolated anonymous PL/SQL error-preservation check on the saved database;
+no object/data changes. Client reported ORA-17273 on its subsequent auto-commit.
+Live DDS agent task failure remains unresolved; owner task/tool history is required.

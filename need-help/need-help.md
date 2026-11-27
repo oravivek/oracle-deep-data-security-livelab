@@ -94,7 +94,7 @@ The provided sample workshop informed the folder and page structure. Product doc
 
 ## Agent task fails and cleanup reports a missing user
 
-Script 19 now prints ORIGINAL_FAILURE, its backtrace, conversation ID and the current tool trace before attempting cleanup. If DROP_CONVERSATION also fails, CLEANUP_FAILED is reported separately and the original task error is re-raised. Python uses the same error-preservation rule. This improves diagnostics; it does not itself fix a failed agent task.
+Script 19 now prints ORIGINAL_FAILURE, its backtrace, conversation ID and the current tool trace before attempting cleanup. If DROP_CONVERSATION also fails, CLEANUP_FAILED is reported separately and the saved task message is returned under ORA-20028. Capturing the stack before cleanup avoids ORA-21002 from a bare RAISE after a nested error; the full original stack is printed above the wrapper. Python uses the same error-preservation rule. This improves diagnostics; it does not itself fix a failed agent task.
 
 As DDS_OWNER on the same database, run `@sql/20_select_ai_history.sql` to inspect the latest dedicated team, task and tool history. Keep the output private. Maximum failed iterations is a wrapper error; inspect the task RESULT and tool OUTPUT/TOOL_OUTPUT before changing model settings, credentials or privileges. An empty tool history means no recorded custom tool call, not proof of a particular root cause.
 
