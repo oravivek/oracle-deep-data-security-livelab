@@ -66,7 +66,15 @@ def ask(database, prompt, *, emit=print, on_tool_result=None):
             finally:
                 # Separate conversations for every request, including failed requests.
                 # Agent run history is separate; see the lab retention guidance.
-                cursor.callproc("DBMS_CLOUD_AI.DROP_CONVERSATION", [conversation, True])
+                original_error = sys.exception()
+                try:
+                    cursor.callproc("DBMS_CLOUD_AI.DROP_CONVERSATION", [conversation, True])
+                except Exception:
+                    if original_error is None:
+                        raise
+                    original_error.add_note(
+                        "Conversation cleanup also failed; inspect database history. "
+                        "The original agent error was retained.")
 
 
 def main():

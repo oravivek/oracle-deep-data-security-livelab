@@ -92,6 +92,14 @@ The provided sample workshop informed the folder and page structure. Product doc
 
 [R21  Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing/st.testing.v1.apptest)
 
+## Agent task fails and cleanup reports a missing user
+
+Script 19 now prints ORIGINAL_FAILURE, its backtrace, conversation ID and the current tool trace before attempting cleanup. If DROP_CONVERSATION also fails, CLEANUP_FAILED is reported separately and the original task error is re-raised. Python uses the same error-preservation rule. This improves diagnostics; it does not itself fix a failed agent task.
+
+As DDS_OWNER on the same database, run `@sql/20_select_ai_history.sql` to inspect the latest dedicated team, task and tool history. Keep the output private. Maximum failed iterations is a wrapper error; inspect the task RESULT and tool OUTPUT/TOOL_OUTPUT before changing model settings, credentials or privileges. An empty tool history means no recorded custom tool call, not proof of a particular root cause.
+
+To isolate inference, call DBMS_CLOUD_AI.GENERATE with action chat and a harmless prompt such as Reply exactly OCI_OK. Use profile DDS_OCI_PROFILE as DDS_OWNER, then DDS_OWNER.DDS_OCI_PROFILE as Emma. Each probe makes a billable inference call. Owner failure points to provider/profile configuration; owner success and consumer failure point to consumer profile/credential access or a service limitation. Success for both still does not establish that the model can complete the agent's tool-calling protocol.
+
 ## Select AI references and troubleshooting
 
 - Missing GRANT_PROFILE_ACCESS or GET_TEAM_STATE: the preflight stops. Check your Autonomous update and package signatures; do not substitute owner execution.

@@ -1,8 +1,8 @@
 Select AI Agent migration release verification — 23 November 2026
-PASS: 20 offline application tests on the corrected Python 3.15 environment.
+PASS: 21 offline application tests on the corrected Python 3.15 environment.
 PASS: Python syntax and workshop structure checks (see build commands).
 PASS: bash syntax check for setup.sh.
-PASS: Word rebuilt from 11 workshop pages and 41 full source listings; all 50 rendered pages visually reviewed.
+PASS: Word rebuilt from 11 workshop pages and 42 full source listings; all 51 rendered pages visually reviewed.
 ZIP: explicit inventory; private config, credentials, wallets, environments and downloaded models excluded.
 Live OCI inference: NOT RUN; requires selected OCI model/region/compartment, IAM setup and database execution.
 New AI SQL setup/cleanup: NOT live-validated. Earlier DDS database baseline remains documented separately.
@@ -14,3 +14,8 @@ Literal tool JSON and input shape validated offline; live CREATE_TOOL remains un
 in SELECT INTO, avoiding PLS-00684 from direct PL/SQL JSON_OBJECT assignment.
 User-provided Emma output confirms direct invoker tools: ID 400, count 1, total 80000.
 The agent block failed compilation before inference; no live AI success is claimed.
+
+Runtime diagnostic correction: preserve the original agent exception when
+DROP_CONVERSATION also fails. Added a regression test and scoped owner history script 20.
+User output confirms RUN_TEAM failed with ORA-20053; the runtime cause is unresolved.
+21 offline tests pass. No successful live agent execution is claimed.

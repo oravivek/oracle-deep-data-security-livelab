@@ -133,6 +133,26 @@ class Boundaries(unittest.TestCase):
                                        ["fresh-id", True])
         connection.close.assert_called_once()
 
+    def test_cleanup_failure_does_not_replace_original_task_error(self):
+        db, connection, cursor = fake_driver()
+        original = ValueError("original task failure")
+        def callfunc(name, *args, **kwargs):
+            if name.endswith("CREATE_CONVERSATION"):
+                return "fresh-id"
+            raise original
+        def callproc(name, *args, **kwargs):
+            if name.endswith("DROP_CONVERSATION"):
+                raise RuntimeError("cleanup user does not exist")
+        cursor.callfunc.side_effect = callfunc
+        cursor.callproc.side_effect = callproc
+        with patch("database.driver", return_value=db):
+            tools = database.DatabaseTools(self.config, "DDS_EMMA", "secret")
+            with self.assertRaises(ValueError) as caught:
+                agent.ask(tools, "Show my salary")
+        self.assertIs(caught.exception, original)
+        self.assertIn("original agent error was retained", str(original.__notes__))
+        connection.close.assert_called_once()
+
     def test_prompt_limit_rejects_before_connecting(self):
         tools = MagicMock()
         for prompt in ("", " " , "x" * 4001, None):
