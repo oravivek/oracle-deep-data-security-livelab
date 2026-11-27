@@ -1,9 +1,18 @@
 # Validation scope
 
-The Select AI migration includes offline tests for authenticated connections, wrong-PDB rejection, context teardown, bound prompt parameters, a fixed server-side team, invoker tool trace identity, failed inference cleanup, and Streamlit sign-in, switching and session isolation. See BUILD_VERIFICATION.txt for the actual release checks.
+The working cursor bridge was installed and verified on an Autonomous Database 26ai deployment reporting 23.26.4.1.0, with OCI xai.grok-4.3, on 28 November 2026. Both Emma and Marvin completed native RUN_TEAM in SQL and real Chrome/Streamlit sessions. State was SUCCEEDED; actual successful tool traces and AI answers agreed.
 
-Earlier real Autonomous Database tests verified Emma sees only employee 400 and total 80000; Marvin sees 200,400,500 and total 285000; both cannot see 300; manager report identifiers are NULL. These remain expected results, not proof that the new OCI agent has run.
+| Consumer | Employee IDs | Count | Salary total | Sensitive IDs |
+| --- | --- | --- | --- | --- |
+| DDS_EMMA | 400 | 1 | 80000 | Own ID visible |
+| DDS_MARVIN | 200,400,500 | 3 | 285000 | Own ID visible; reports null |
 
-User-provided output on 27 November 2026 confirms Emma can invoke the new PL/SQL tools directly: employee 400, count 1, total 80000. The agent run fails with ORA-20053 (maximum failed iterations), followed by ORA-01435 during conversation cleanup. The runtime cause of the task failure remains unresolved. User output also exposed ORA-21002 from the bare RAISE after cleanup. The corrected handler saves the original stack before cleanup and explicitly raises ORA-20028 with its message. An isolated anonymous PL/SQL check with simulated task and cleanup failures completed successfully on the saved database (the SQL client subsequently reported an auto-commit warning; the check changes no objects or data). The supplied diagnostics preserve the original message and inspect scoped history; they are not a successful inference result. The previously saved connection currently has no DDS_OWNER objects or DDS team history, so the failing target must be identified before direct investigation. Cleanup scripts have not been live-validated.
+Both consumers passed a combined view, employee-300 and claimed-owner prompt. View rows remained restricted and employee 300 returned an empty list. Browser sessions independently showed the correct identity, submitted prompt, tool rows/summary, SUCCEEDED indicator and matching AI prose. No passwords or private connection values are included in this release.
 
-Before presenting, complete the checkpoints in Lab 4 and AI_VERIFICATION.md. Confirm shared profile, team, credential privileges and invoker-rights functions on your Autonomous update. Do not treat mock tests as evidence of database policy enforcement. Cleanup is intentionally not run against the active demo solely to validate packaging.
+The runtime has NO AUTHENTICATION, zero system privileges, zero conventional roles, no data roles and no employee-table/view object grants. The temporary installer and all DDS_DIAG accounts/code/jobs/programs were removed. The permanent approved runtime remains installed. Error preservation retained the original null-prompt -20085; a subsequent valid native request in the same session succeeded.
+
+The original direct shared-team ORA-01435 remains reproducible on the tested deployment; the bridge is a verified architectural workaround, not a claim to have patched Oracle internals. It uses native planning and tool execution, not a Python/chat compatibility workflow. Ordinary SELECT grants on the runtime would undermine the design and are not used.
+
+Offline tests validate client identity/state/trace checks, bound prompts, error handling and Streamlit session isolation. They do not emulate DDS. The optional Entra delegated path is supplied separately and is not live-validated. Participants must repeat the SQL and agent checkpoints against their own update, region and configuration. Model prose can vary; validate it against tool results.
+
+The setup was executed successfully on the retained demo. Release cleanup was structurally reviewed and packaged, but the permanent runtime/base demo was deliberately not deleted simply to test this documentation release. Diagnostic objects were actually removed and their absence checked. Do not interpret cleanup documentation as evidence of a destructive end-to-end teardown test.

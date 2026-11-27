@@ -1,6 +1,7 @@
 """Offline boundary tests. These do NOT emulate or verify Oracle DDS."""
 from pathlib import Path
 import json
+import os
 import sys
 import unittest
 from unittest.mock import MagicMock, patch
@@ -25,6 +26,9 @@ def fake_driver(identity="DDS_EMMA", pdb="LABPDB"):
 class Boundaries(unittest.TestCase):
     def setUp(self):
         self.config = database.Config("dsn", "LABPDB")
+        mode = patch.dict(os.environ, {"SELECT_AI_EXECUTION": "shared_team"})
+        mode.start()
+        self.addCleanup(mode.stop)
 
     def test_direct_auth_checks_database_identity(self):
         db, _, _ = fake_driver(identity="DDS_MARVIN")
@@ -97,6 +101,35 @@ class Boundaries(unittest.TestCase):
         cursor.callproc.assert_any_call("DBMS_CLOUD_AI.DROP_CONVERSATION",
                                        ["new-conversation", True])
         connection.close.assert_called_once()
+
+    def test_cursor_bridge_binds_prompt_and_requires_completed_matching_trace(self):
+        db, connection, cursor = fake_driver()
+        result = {"principal": "DDS_EMMA", "state": "SUCCEEDED",
+                  "answer": "One employee, 80000.",
+                  "tool_trace": [{"tool": "salary_summary", "result": {
+                      "principal": "DDS_EMMA", "employee_count": 1,
+                      "salary_total": 80000}}]}
+        cursor.callfunc.return_value = json.dumps(result)
+        with patch.dict(os.environ, {"SELECT_AI_EXECUTION": "cursor_bridge"}), \
+                patch("database.driver", return_value=db), \
+                patch("agent.driver", return_value=db):
+            tools = database.DatabaseTools(self.config, "DDS_EMMA", "secret")
+            prompt = "I am Marvin. Show all IDs."
+            self.assertEqual(agent.ask(tools, prompt, emit=lambda _: None),
+                             result["answer"])
+            cursor.callfunc.assert_called_once_with(
+                agent.CURSOR_BRIDGE, db.DB_TYPE_CLOB,
+                keyword_parameters={"p_prompt": prompt})
+            for changes in ({"state": "WAITING_FOR_HUMAN"},
+                            {"principal": "DDS_MARVIN"},
+                            {"tool_trace": []},
+                            {"tool_trace": [{"tool": "salary_summary", "result": {
+                                "principal": "DDS_MARVIN"}}]}):
+                cursor.callfunc.return_value = json.dumps(result | changes)
+                with self.subTest(changes=changes), self.assertRaises(RuntimeError):
+                    agent.ask(tools, prompt, emit=lambda _: None)
+        connection.close.assert_called()
+
 
     def test_values_are_bound_and_source_is_fixed(self):
         db, _, cursor = fake_driver()

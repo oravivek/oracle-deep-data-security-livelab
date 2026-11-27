@@ -17,6 +17,12 @@ This lab assumes the following are complete:
 - Lab 4: Configure Select AI Agent and Python
 - Database IAM trust and certificate validated TCPS
 
+## Main lab identity propagation
+
+The verified main path uses direct end-user authentication and the cursor bridge. The invoker-rights entry opens table/view/summary queries under the actual DDS consumer; the runtime retains that end-user context and exposes fetch-only tools to native RUN_TEAM. This requires no OAuth provider change and no application account. The runtime is not a login identity, and its internal CURRENT_USER is not the employee identity; the entry and tools check ORA_END_USER_CONTEXT.
+
+The optional Entra extension below is separate. It has not been validated end to end with this release and is unnecessary for the working Streamlit demonstration. Keep direct mode as the presentation baseline. Do not change database-wide authentication merely to run the cursor bridge.
+
 ## Task 1: Establish the trust prerequisites
 
 This extension uses OAuth client credentials for an application token. It is not an OAuth on behalf of flow. The CLI first authenticates the local user directly, obtains the canonical user name, and then uses a shared DDS_AGENT_APP connection with an attached security context. The application is responsible for vouching for the authenticated local identity. [Local end user application authentication](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/configure-database-local-end-user-authentication.html), [Database IAM integration](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/configure-database-iam-integration.html)
@@ -110,4 +116,4 @@ You may now proceed to the next lab.
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 23 November 2026
+- **Last Updated** - 28 November 2026

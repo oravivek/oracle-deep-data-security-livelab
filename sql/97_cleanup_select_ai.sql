@@ -1,3 +1,4 @@
+-- First remove the native runtime with 95_cleanup_native_cursor.sql as ADMIN.
 -- Optional AI-only removal. Run as DDS_OWNER before base cleanup.
 @@_session.sql
 @@_owner.sql
@@ -15,6 +16,7 @@ BEGIN
   DBMS_CLOUD_AI_AGENT.DROP_AGENT('DDS_HR_AGENT',TRUE);
   DBMS_CLOUD_AI_AGENT.DROP_TOOL('DDS_LIST_TOOL',TRUE);
   DBMS_CLOUD_AI_AGENT.DROP_TOOL('DDS_SUMMARY_TOOL',TRUE);
+  DBMS_CLOUD_AI.DROP_PROFILE('DDS_NATIVE_OCI_PROFILE',TRUE);
   DBMS_CLOUD_AI.DROP_PROFILE('DDS_OCI_PROFILE',TRUE);
 END;
 /

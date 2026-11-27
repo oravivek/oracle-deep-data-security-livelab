@@ -14,7 +14,7 @@ outputs refer to the original four-row baseline and the supplied data grants.
 | View returns broader data | Confirm base table USE_DATA_GRANTS_ONLY TRUE and inspect all overlapping grants |
 | Manager sees a team identifier | Inspect additional authorizations and role memberships |
 | SQL update has an unexpected error | Script exits and rolls back; investigate and verify unchanged data as owner |
-| Probe works but AI does not | Check OCI IAM, model availability/tool support, profile/team/credential sharing and invoker tool privileges |
+| Probe works but AI does not | Check OCI IAM, model availability/tool support, runtime/profile/credential access, scripts 22 through 24, and native tool history |
 | AI answer contradicts tool data | Treat the tool result as evidence and revise or rerun the model request |
 | Streamlit shows sign-in failure | Test the same persona with SQL and the CLI using the same PDB and server environment |
 | Shared account cannot attach context | Check TCPS validation, IAM resource audience and trust, and CREATE END USER SECURITY CONTEXT |
@@ -50,7 +50,7 @@ For a production application, replace lab password entry with an authenticated a
 
 ## Learn More
 
-The provided sample workshop informed the folder and page structure. Product documentation supports the mechanisms described here; it does not certify execution of this custom lab. Source references were checked on 23 November 2026.
+The provided sample workshop informed the folder and page structure. Product documentation supports the mechanisms described here; it does not certify execution of this custom lab. Source references were checked on 28 November 2026.
 
 [R1  Oracle direct logon prerequisites](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/you-begin-l.html)
 
@@ -92,35 +92,30 @@ The provided sample workshop informed the folder and page structure. Product doc
 
 [R21  Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing/st.testing.v1.apptest)
 
-## Agent task fails and cleanup reports a missing user
+## Native cursor bridge diagnostics
 
-Script 19 now prints ORIGINAL_FAILURE, its backtrace, conversation ID and the current tool trace before attempting cleanup. If DROP_CONVERSATION also fails, CLEANUP_FAILED is reported separately and the saved task message is returned under ORA-20028. Capturing the stack before cleanup avoids ORA-21002 from a bare RAISE after a nested error; the full original stack is printed above the wrapper. Python uses the same error-preservation rule. This improves diagnostics; it does not itself fix a failed agent task.
+The original direct shared-team path reproduced ORA-01435 during custom tool dispatch, before the DDS read function ran. Changing models alone did not resolve that path. The working bridge keeps native RUN_TEAM but opens authorized cursors under the signed-in DDS consumer before entering the runtime. The runtime has no employee privileges and tools only fetch these cursors. Do not grant it SELECT, manager roles or unrestricted parsing privileges.
 
-As DDS_OWNER on the same database, run `@sql/20_select_ai_history.sql` to inspect the latest dedicated team, task and tool history. Keep the output private. Maximum failed iterations is a wrapper error; inspect the task RESULT and tool OUTPUT/TOOL_OUTPUT before changing model settings, credentials or privileges. An empty tool history means no recorded custom tool call, not proof of a particular root cause.
+If the UI still names DDS_OWNER.DDS_HR_TEAM, update the running project copy and use SELECT_AI_EXECUTION=cursor_bridge. The correct team is DDS_AGENT_RUNTIME.DDS_CURSOR_TEAM. Script 19 remains a diagnostic of the original path; use script 25 for the working lab. As ADMIN, script 26 shows the runtime's scoped native history and privilege checks. USER history under DDS_OWNER does not show a runtime-owned team's runs.
 
-To isolate inference, call DBMS_CLOUD_AI.GENERATE with action chat and a harmless prompt such as Reply exactly OCI_OK. Use profile DDS_OCI_PROFILE as DDS_OWNER, then DDS_OWNER.DDS_OCI_PROFILE as Emma. Each probe makes a billable inference call. Owner failure points to provider/profile configuration; owner success and consumer failure point to consumer profile/credential access or a service limitation. Success for both still does not establish that the model can complete the agent's tool-calling protocol.
+Completion requires the actual native state SUCCEEDED plus successful identity-matching tool output. A fluent answer can describe a tool error; it is not evidence of completion. A fresh task with human tools disabled and no diagnostic _persistent_mode attribute resolved the observed waiting-state issue. Do not force SET_EXECUTION_STATE merely to display success.
 
-## Select AI references and troubleshooting
+The runtime owns its conversations and GET_TEAM_STATE call, avoiding the shared-consumer XS$NULL ownership error. Error handlers save the original stack before cleanup and raise an explicit wrapper retaining the cause; a null-prompt check retained -20085 and a following same-session native run succeeded. This prevents ORA-21002 caused by reraising after a nested cleanup failure.
 
-- Missing GRANT_PROFILE_ACCESS or GET_TEAM_STATE: the preflight stops. Check your Autonomous update and package signatures; do not substitute owner execution.
-- ORA-06598: inspect the actual invoker identity and service support for DDS consumers with invoker-rights functions. DDS end users are not schema users; do not issue ON USER grants for their names or grant INHERIT ANY PRIVILEGES.
-- ORA-24247 or HTTPS failure: check the regional endpoint route/ACL and trust configuration for the calling role. Keep certificate verification enabled.
-- OCI 401/403: verify the database OCID dynamic-group match, inference compartment, credential access and IAM policy propagation.
-- No tool trace or a different principal: fail the demo and inspect AUTHID CURRENT_USER and session context. Never grant unrestricted SELECT to make it work.
-- Partial setup: inspect USER_ERRORS as DDS_OWNER, remove the AI extension with 97/96, then recreate it in order. Do not rerun base principal creation.
+If setup is partial, inspect compile errors and existing metadata before retrying. Never rerun base principal creation on an existing lab. Full AI removal is 95 as ADMIN, 97 as DDS_OWNER, then 96 as ADMIN; these are destructive and are not needed for rehearsal. If an end-user login fails, inspect the saved identity/schema association before altering it. During diagnosis, restoring Emma to NO SCHEMA caused a login error on the tested deployment; do not repeatedly change schema associations or create conventional users with end-user names.
 
-[Agent API and shared consumer execution](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/dbms-cloud-ai-agent-package.html)
+Successful chat inference establishes provider access, not successful tool calling or DDS enforcement. Verify resource-principal credential access, the configured model and the scoped native tool history. Keep certificate/DN validation enabled. The optional Entra application-context extension is not required and has not been verified with this release.
 
-[Shared-team prerequisites](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/prerequisites-sharing-select-ai-agent-teams.html)
+[Native agent API](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/dbms-cloud-ai-agent-package.html)
 
-[Profile-sharing API in Oracle's Python source](https://github.com/oracle/python-select-ai/blob/main/src/select_ai/profile.py)
+[DBMS_SQL cursor security](https://docs.oracle.com/en/database/oracle/oracle-database/26/arpls/DBMS_SQL.html)
 
-[Resource principal](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/resource-principal.html)
+[Mandatory data privileges](https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/enforce-mandatory-data-privileges.html)
 
-[OCI inference IAM policies](https://docs.oracle.com/en-us/iaas/Content/generative-ai/iam-policies.htm)
+USE DATA GRANTS ONLY applies to DDS users; it does not make an ordinary schema with table SELECT subject to those end-user grants. This is why the runtime must remain without employee privileges.
 
 ## Acknowledgements
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 23 November 2026
+- **Last Updated** - 28 November 2026

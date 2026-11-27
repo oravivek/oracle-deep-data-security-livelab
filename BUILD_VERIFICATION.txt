@@ -1,27 +1,19 @@
-Select AI Agent migration release verification — 23 November 2026
-PASS: 21 offline application tests on the corrected Python 3.15 environment.
-PASS: Python syntax and workshop structure checks (see build commands).
-PASS: bash syntax check for setup.sh.
-PASS: Word rebuilt from 11 workshop pages and 42 full source listings; all 51 rendered pages visually reviewed.
-ZIP: explicit inventory; private config, credentials, wallets, environments and downloaded models excluded.
-Live OCI inference: NOT RUN; requires selected OCI model/region/compartment, IAM setup and database execution.
-New AI SQL setup/cleanup: NOT live-validated. Earlier DDS database baseline remains documented separately.
+Native Select AI cursor bridge release verification — 28 November 2026
 
-27 November 2026 correction: tool_inputs now uses an array of name/description objects.
-Literal tool JSON and input shape validated offline; live CREATE_TOOL remains unverified.
+PASS: 22 offline Python/Streamlit tests in the corrected Python 3.15 environment.
+PASS: Python syntax, 11 workshop pages, local links, sequential tasks, SQL helper references and Autonomous container/admin guards.
+PASS: bash syntax check for setup.sh; git diff --check.
+PASS: Word rebuilt from 11 workshop pages and 48 full source listings; source text integrity assertions passed. All 58 rendered page images reviewed. No clipped text, broken tables or missing glyphs observed; PDF text bounds remained within page margins.
+PASS: release inventory excludes config.env, wallets, credentials, .local, .git and Python environments. ZIP payload is checksummed and verified by tools/package_lab.py.
 
-27 November 2026 correction: consumer conversation JSON CLOB is constructed
-in SELECT INTO, avoiding PLS-00684 from direct PL/SQL JSON_OBJECT assignment.
-User-provided Emma output confirms direct invoker tools: ID 400, count 1, total 80000.
-The agent block failed compilation before inference; no live AI success is claimed.
+Actual live evidence retained from the installed lab, 28 November 2026:
+PASS: native RUN_TEAM SUCCEEDED as Emma and Marvin using OCI xai.grok-4.3.
+PASS: Emma employee 400 only, count 1, salary total 80000, own ID visible.
+PASS: Marvin employees 200/400/500, count 3, total 285000; only own ID visible.
+PASS: view access, employee 300 empty rows and claimed-owner prompts retain each authenticated DDS identity and its restrictions.
+PASS: actual Chrome/Streamlit identity, prompt, native tool results, SUCCEEDED indicator and AI answer verified for both users; model answers matched the returned data for the tested prompts.
+PASS: no-authentication runtime has zero system privileges, roles and employee-object grants. Installer and DDS_DIAG objects removed.
+PASS: original error retained across cleanup, no ORA-21002, and a subsequent same-session native request succeeded.
 
-Runtime diagnostic correction: preserve the original agent exception when
-DROP_CONVERSATION also fails. Added a regression test and scoped owner history script 20.
-User output confirms RUN_TEAM failed with ORA-20053; the runtime cause is unresolved.
-21 offline tests pass. No successful live agent execution is claimed.
-
-27 November 2026 follow-up: save the SQL error stack before cleanup and raise
-ORA-20028 explicitly; a bare RAISE after cleanup produced ORA-21002.
-PASS: isolated anonymous PL/SQL error-preservation check on the saved database;
-no object/data changes. Client reported ORA-17273 on its subsequent auto-commit.
-Live DDS agent task failure remains unresolved; owner task/tool history is required.
+Scope: the direct shared-team ORA-01435 is bypassed by the database-only cursor architecture; no Oracle managed package was patched. Original path retained explicitly for diagnosis. No Python/chat compatibility agent or Oracle Support SR is involved.
+Participants must repeat checks against their own Autonomous update and OCI configuration. Individual prompt variants are repeat checks, not all independently claimed as executed. Optional Entra delegated mode remains unvalidated. Permanent destructive cleanup was reviewed but not executed against the retained working demo to validate this release. No database authentication or OCI policy changes were made during packaging.

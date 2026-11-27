@@ -71,4 +71,4 @@ All SQL scripts load this configuration and stop if the target does not match. K
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 23 November 2026
+- **Last Updated** - 28 November 2026

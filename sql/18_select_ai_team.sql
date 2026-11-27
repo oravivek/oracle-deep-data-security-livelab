@@ -1,3 +1,4 @@
+-- Original shared-team path retained for diagnostics. Install 22 through 24 for the working application.
 -- Run as DDS_OWNER after editing 15_select_ai_config.sql.
 @@_session.sql
 @@_owner.sql

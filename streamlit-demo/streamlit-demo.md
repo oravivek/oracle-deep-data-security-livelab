@@ -24,6 +24,7 @@ In the configured project root terminal:
 <copy>
 source .venv315/bin/activate
 source config.env
+export SELECT_AI_EXECUTION=cursor_bridge
 python -m streamlit run streamlit_app.py
 </copy>
 ```
@@ -50,13 +51,25 @@ Open http://127.0.0.1:8501 in your browser. The included .streamlit/config.toml 
 
 ## Task 4: Explain session behavior
 
-Run AI agent calls the fixed DDS_OWNER.DDS_HR_TEAM through RUN_TEAM. The left panel shows the real tool trace from that consumer session; the right panel shows a response only after SUCCEEDED. The model is configured in DDS_OWNER.DDS_OCI_PROFILE. Show database results is a separately labeled diagnostic probe.
+Run AI agent calls DDS_AGENT_RUNTIME.RUN_DDS_AGENT with a bound prompt. Oracle runs DDS_AGENT_RUNTIME.DDS_CURSOR_TEAM through native RUN_TEAM and checks its completion as owner. The left panel shows the actual fetch-tool trace for the authenticated consumer; the right panel displays Native RUN_TEAM completed SUCCEEDED and the answer only after validation. The model is configured in DDS_OWNER.DDS_NATIVE_OCI_PROFILE (released setting xai.grok-4.3). Show database results remains a separate diagnostic probe.
 
 The app reauthenticates before every request, and the adapter verifies identity again before data SQL. Each browser session holds its own adapter and credentials in server memory; there is no global cached connection or employee result. Signing out clears that session’s credentials and display. Reauthentication failure signs the user out. A model or tool failure removes an old answer and retains only completed tool results from the current request. Raw exception text is hidden.
 
 This local demo reuses lab passwords and is intended for a presenter’s computer. A deployed application needs an authenticated server side login and an appropriately trusted identity propagation flow. Do not turn the persona selector into an unauthenticated shared account identity switch.
 
 **Checkpoint** You have compared both personas using SQL, a deterministic probe, a live AI answer, and the web UI. The database results agree in every path.
+
+## Verified demonstration results
+
+Real Chrome sessions were verified on 28 November 2026. Both displayed the active identity, submitted prompt, actual native tool results, SUCCEEDED and a matching AI response. The tested prompt was:
+
+```text
+<copy>
+List all authorized employees with employee_id, name, salary and sensitive_id, including rows with null IDs. Then use the summary tool to give authorized employee count and salary total.
+</copy>
+```
+
+Emma displayed employee 400 and summary 1 / 80000. Marvin displayed 200/400/500 and summary 3 / 285000; Emma and Taylor displayed Restricted and remained null in raw JSON. For side-by-side presentation you may use separate signed-in tabs; each has independent session state. Never change the identity by editing a prompt.
 
 ## Interface layout
 
@@ -72,4 +85,4 @@ You may continue to the optional identity propagation lab or proceed directly to
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 23 November 2026
+- **Last Updated** - 28 November 2026

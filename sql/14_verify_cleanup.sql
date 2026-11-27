@@ -6,7 +6,7 @@ DECLARE
 BEGIN
   SELECT SUM(n) INTO l_count FROM (
     SELECT COUNT(*) n FROM dba_users
-      WHERE username IN ('DDS_OWNER','DDS_AGENT_APP')
+      WHERE username IN ('DDS_OWNER','DDS_AGENT_APP','DDS_AGENT_RUNTIME')
     UNION ALL
     SELECT COUNT(*) FROM dba_end_users
       WHERE username IN ('DDS_EMMA','DDS_MARVIN','DDS_OUTSIDER')

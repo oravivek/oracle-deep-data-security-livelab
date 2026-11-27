@@ -146,8 +146,9 @@ def markdown(text, new_page=False):
             p.paragraph_format.keep_with_next = True
             if 'flow' in label.lower():
                 doc.add_paragraph('Streamlit or CLI → authenticated DDS end user → '
-                                  'Autonomous Database data grants → authorized tool '
-                                  'results → Select AI Agent with OCI Generative AI → AI response.')
+                                  'invoker-rights entry opens DDS-authorized query cursors → '
+                                  'no-authentication runtime calls native RUN_TEAM → '
+                                  'OCI model selects fetch-only tools → validated SUCCEEDED answer and trace.')
             elif 'layout' in label.lower():
                 doc.add_paragraph('The sidebar holds sign-in controls. The main area '
                                   'shows active identity, PDB, AI provider and prompt, followed '
@@ -176,15 +177,15 @@ def markdown(text, new_page=False):
 
 title = 'Oracle Autonomous Database 26ai Deep Data Security Live Lab'
 doc.add_paragraph(title, style='Title')
-doc.add_paragraph('Database setup Python AI agent and Streamlit interface', style='Subtitle')
+doc.add_paragraph('Native Select AI cursor bridge Python client and Streamlit interface', style='Subtitle')
 doc.add_paragraph('Build and present an employee and manager demonstration in which '
                   'Oracle enforces row and column authorization before data reaches '
                   'OCI Generative AI through Select AI Agent. This guide includes setup, SQL tests, wallet '
-                  'configuration, runnable Python and Streamlit code, expected results '
+                  'configuration, the working native cursor bridge, verified results, runnable Python and Streamlit code, '
                   'and ADMIN-based cleanup.')
 doc.add_paragraph('Audience  Database administrators developers and presenters')
 doc.add_paragraph('Duration  About 150 minutes after prerequisites and downloads')
-doc.add_paragraph('Updated  23 November 2026')
+doc.add_paragraph('Updated  28 November 2026')
 doc.add_heading('How to use this guide', 1)
 doc.add_paragraph('Use the supplied ZIP or GitHub repository to run the files directly. '
                   'All commands assume the extracted project root. Replace ADB_LAB '
@@ -246,7 +247,7 @@ header = section.header.paragraphs[0]
 header.add_run('Autonomous Database 26ai  |  Deep Data Security live lab').font.size = Pt(9)
 footer = section.footer.paragraphs[0]
 footer.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-footer.add_run('23 November 2026  |  Page ').font.size = Pt(9)
+footer.add_run('28 November 2026  |  Page ').font.size = Pt(9)
 field = OxmlElement('w:fldSimple')
 field.set(qn('w:instr'), 'PAGE')
 footer._p.append(field)

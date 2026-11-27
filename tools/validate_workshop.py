@@ -71,6 +71,29 @@ assert re.search(r"SELECT\s+JSON_OBJECT\('conversation_id' VALUE c RETURNING CLO
 assert not re.search(r'^\s*RAISE\s*;', consumer_sql, re.M | re.I)
 assert 'failure_stack := DBMS_UTILITY.FORMAT_ERROR_STACK;' in consumer_sql
 assert 'RAISE_APPLICATION_ERROR(-20028,SUBSTR(failure_stack,1,450),FALSE);' in consumer_sql
+# The released cursor bridge must preserve its boundary and complete natively.
+runtime = (root / 'sql/22_native_cursor_runtime.sql').read_text()
+assert 'CREATE USER DDS_AGENT_RUNTIME NO AUTHENTICATION' in runtime
+assert '@@_admin.sql' in runtime
+assert 'GRANT EXECUTE ON DDS_AGENT_RUNTIME.RUN_DDS_AGENT TO DDS_AI_DB_ROLE' in runtime
+assert not re.search(r'GRANT\s+(?:SELECT|CREATE SESSION|INHERIT ANY)', runtime, re.I)
+assert 'security_level=>0' not in runtime.replace(' ', '')
+assert "s<>'SUCCEEDED'" in runtime and 'GET_TEAM_STATE' in runtime
+assert 'SET_EXECUTION_STATE' not in runtime
+assert not re.search(r'^\s*RAISE\s*;', runtime, re.M | re.I)
+assert 'saved_error:=DBMS_UTILITY.FORMAT_ERROR_STACK' in runtime
+native_team = (root / 'sql/24_native_cursor_team.sql').read_text()
+assert '_persistent_mode' not in native_team
+assert native_team.count('"enable_human_tool":false') == 2
+native_defs = re.findall(r"CREATE_TOOL\('([^']+)',q'~(.*?)~'\)", native_team, re.S)
+assert len(native_defs) == 2
+for name,literal in native_defs:
+    attr=json.loads(literal)
+    assert attr['function'].startswith('DDS_AGENT_RUNTIME.')
+    if 'tool_inputs' in attr: assert isinstance(attr['tool_inputs'],list)
+assert 'DDS_AGENT_RUNTIME' in (root / 'sql/14_verify_cleanup.sql').read_text()
+assert 'REMOVE_NATIVE_DDS' in (root / 'sql/95_cleanup_native_cursor.sql').read_text()
+assert "DROP_PROFILE('DDS_NATIVE_OCI_PROFILE',TRUE)" in (root / 'sql/97_cleanup_select_ai.sql').read_text()
 files = [p for p in release_files(root) if p.name != 'SHA256SUMS.txt']
 if args.release:
     assert 'CHANGE_ME_PDB' in (root / 'sql/00_config.sql').read_text()

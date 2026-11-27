@@ -8,6 +8,7 @@ import sys
 from database import ALLOWED_USERS, Config, DatabaseTools, authenticate, driver
 
 TEAM = "DDS_OWNER.DDS_HR_TEAM"
+CURSOR_BRIDGE = "DDS_AGENT_RUNTIME.RUN_DDS_AGENT"
 
 
 def encode(value):
@@ -35,6 +36,39 @@ def checked_trace(raw, principal):
 
 
 def ask(database, prompt, *, emit=print, on_tool_result=None):
+    if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 4000:
+        raise ValueError("Prompt must contain 1 to 4000 characters")
+    execution = os.getenv("SELECT_AI_EXECUTION", "cursor_bridge")
+    if execution == "shared_team":
+        return _ask_shared_team(database, prompt, emit=emit,
+                                on_tool_result=on_tool_result)
+    if execution != "cursor_bridge":
+        raise ValueError("SELECT_AI_EXECUTION must be cursor_bridge or shared_team")
+    # Oracle performs native RUN_TEAM orchestration and tool calls. Python only
+    # binds the prompt and verifies the response envelope from that same session.
+    with database.connection(read_only=False) as connection:
+        connection.call_timeout = 240000
+        with connection.cursor() as cursor:
+            raw = read_clob(cursor.callfunc(
+                CURSOR_BRIDGE, driver().DB_TYPE_CLOB,
+                keyword_parameters={"p_prompt": prompt}))
+            result = json.loads(raw)
+            if (not isinstance(result, dict)
+                    or result.get("principal") != database.principal
+                    or result.get("state") != "SUCCEEDED"
+                    or not isinstance(result.get("answer"), str)
+                    or not result["answer"].strip()):
+                raise RuntimeError("Native DDS agent returned an invalid result")
+            records = checked_trace(encode(result.get("tool_trace")),
+                                    database.principal)
+            for record in records:
+                emit("TOOL_RESULT " + record["tool"] + " " + encode(record["result"]))
+                if on_tool_result:
+                    on_tool_result(record["tool"], record["result"])
+            return result["answer"]
+
+
+def _ask_shared_team(database, prompt, *, emit=print, on_tool_result=None):
     if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 4000:
         raise ValueError("Prompt must contain 1 to 4000 characters")
     # RUN_TEAM may write framework history. The custom tools themselves only SELECT.

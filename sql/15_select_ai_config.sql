@@ -2,4 +2,4 @@
 -- Confirm model availability in the chosen OCI Generative AI region.
 DEFINE dds_ai_region = CHANGE_ME_REGION
 DEFINE dds_ai_compartment = CHANGE_ME_COMPARTMENT_OCID
-DEFINE dds_ai_model = CHANGE_ME_MODEL_ID
+DEFINE dds_ai_model = xai.grok-4.3

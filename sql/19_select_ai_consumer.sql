@@ -1,3 +1,4 @@
+-- Diagnostic reproduction of the original shared-team dispatch. Use 25 for the working cursor bridge.
 -- Run separately as DDS_EMMA and DDS_MARVIN; no owner/admin execution.
 @@_session.sql
 ACCEPT dds_expected_end_user CHAR PROMPT 'Expected DDS_EMMA or DDS_MARVIN: '

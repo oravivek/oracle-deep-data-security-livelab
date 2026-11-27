@@ -102,4 +102,4 @@ You may now proceed to the next lab.
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 23 November 2026
+- **Last Updated** - 28 November 2026

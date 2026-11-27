@@ -1,32 +1,32 @@
-# Configure Select AI Agent and the Python Client
+# Configure the Native Select AI Cursor Bridge
 
 ## Introduction
 
-Create an OCI-backed agent in Autonomous Database, then connect the Python client using each authenticated DDS end user.
+Install the working database-only cursor bridge, then connect Python using each authenticated DDS end user. Native Select AI Agent performs model planning, tool calls and response generation. Python binds the prompt and validates the result.
 
-Estimated Time: 35 minutes after OCI permissions are available.
+Estimated Time: 40 minutes after OCI permissions are available.
 
 ### Objectives
 
-- Configure OCI inference, a shared AI profile, two invoker-rights tools and a sequential agent team.
-- Verify database tools independently of AI responses.
+- Preserve DDS row and column enforcement while native RUN_TEAM invokes tools.
+- Install a runtime account without authentication, login privileges, employee object privileges or data roles.
+- Require native SUCCEEDED state and an identity-matching tool trace.
 
 ### Prerequisites
 
-- Complete Labs 1 through 3 and retain the successful Emma and Marvin SQL baselines.
-- An OCI administrator can configure a dynamic group and policy for this Autonomous Database.
+Complete Labs 1 through 3 and retain both SQL baselines. An OCI administrator must be able to authorize inference for this database.
 
-## Task 1: Choose OCI inference settings
+## Task 1: Configure the verified model
 
-In OCI Console, open Generative AI in your chosen region. Select a currently available chat model that supports tool/function calling and is supported by Select AI Agent. Record its exact model ID, region and inference compartment OCID. Availability changes by region; a database in Phoenix can use a supported inference region subject to your network and residency requirements. Do not assume every model supports tools.
+Edit sql/15_select_ai_config.sql with the inference region and compartment OCID. The released model is xai.grok-4.3, verified with this lab on 28 November 2026. Confirm availability and permission in your region. A Phoenix database may use another supported inference region according to your network and residency requirements. Use the exact inference model ID documented for your model in target.model.id. Current Oracle model-access documentation uses provider IDs such as xai.grok-4.3; do not substitute an OCID merely because the condition is named model.id.
 
-Edit `sql/15_select_ai_config.sql` with those three public settings. All CHANGE_ME values must be replaced. This file controls the real model; Python has no model weights or OCI SDK credentials. For an example identifier, `meta.llama-3.3-70b-instruct` appears in Oracle's profile examples; confirm current availability and tool support before choosing it. The lab intentionally has no implicit model default.
+Script 23 uses these same settings for DDS_NATIVE_OCI_PROFILE. The original DDS_OCI_PROFILE and DDS_HR_TEAM remain available for diagnosis; they are not the default application path.
 
-[Select AI Agent package](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/dbms-cloud-ai-agent-package.html), [OCI model availability](https://docs.oracle.com/en-us/iaas/Content/generative-ai/pretrained-models.htm)
+[Select AI Agent API](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/dbms-cloud-ai-agent-package.html), [Grok 4.3](https://docs.oracle.com/en-us/iaas/Content/generative-ai/xai-grok-4-3.htm)
 
-## Task 2: Configure OCI resource-principal permissions
+## Task 2: Configure OCI resource principal permissions
 
-Create a dedicated dynamic group, for example DDS_ADB_DG, with a rule restricted to this database's resource OCID:
+Create a database-specific dynamic group such as DDS_ADB_DG:
 
 ```text
 <copy>
@@ -34,33 +34,21 @@ ALL {resource.type = 'autonomousdatabase', resource.id = 'YOUR_ADB_OCID'}
 </copy>
 ```
 
-Create a policy in a compartment where your OCI administrator can authorize the inference compartment. Replace the names and model ID:
+Create a model-scoped policy in the appropriate compartment. For this released model, use the explicit ID below and replace the compartment placeholder:
 
 ```text
 <copy>
-Allow dynamic-group DDS_ADB_DG to use generative-ai-chat in compartment YOUR_INFERENCE_COMPARTMENT where target.model.id = 'YOUR_APPROVED_MODEL_ID'
+Allow dynamic-group DDS_ADB_DG to use generative-ai-chat in compartment YOUR_INFERENCE_COMPARTMENT where target.model.id = 'xai.grok-4.3'
 </copy>
 ```
 
-Allow time for IAM propagation. Verify no broader policy defeats the intended model restriction. Inference consumes OCI resources and can incur charges. Prompts and authorized synthetic tool data are sent from the database to the configured OCI Generative AI service. Keep real employee data out of this demonstration.
+Allow IAM propagation and verify no broader policy overrides your intended restriction. Inference can incur charges. Prompts and authorized synthetic tool data are sent to OCI Generative AI. Do not use real employee data in this workshop. If outbound ACLs or private routes are required, authorize only the appropriate regional endpoint using your approved configuration.
 
-The database administrator enables the database resource principal in script 16, grants access to DDS_OWNER, and gives the AI consumer role the corresponding credential privilege. Team/profile sharing alone does not grant credential access. The role reaches Emma and Marvin through DDS_EMPLOYEE_ROLE; it grants no extra employee rows or columns.
+[Resource principal](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/resource-principal.html), [Model access policies](https://docs.oracle.com/en-us/iaas/Content/generative-ai/limit-model-access.htm)
 
-If your Autonomous outbound network configuration requires a host ACL or private endpoint route, allow the selected regional inference HTTPS endpoint for DDS_OWNER and DDS_AI_DB_ROLE using your approved network configuration. Do not open all hosts to solve a connection error.
+## Task 3: Prepare the original tools and OCI profile
 
-[Resource-principal setup](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/resource-principal.html), [Model-level IAM policies](https://docs.oracle.com/en-us/iaas/Content/generative-ai/limit-model-access.htm)
-
-## Task 3: Create database tools and the shared team
-
-From the project root, open SQLcl without a password on its command line:
-
-```bash
-<copy>
-sql /nolog
-</copy>
-```
-
-In SQLcl, run the following. Replace ADB_LAB with your wallet alias; CONNECT prompts for the password. The existing `sql/00_config.sql` must contain the correct PDB guard.
+From the extracted project root, open SQLcl and use the wallet alias for your database. CONNECT prompts for passwords. Configure sql/00_config.sql before running the guarded scripts.
 
 ```sql
 <copy>
@@ -72,36 +60,57 @@ CONNECT DDS_OWNER@ADB_LAB
 </copy>
 ```
 
-Script 16 first checks the required API surface, then creates DDS_AI_DB_ROLE, grants package execution through the employee data role, and prepares resource-principal access. It does not grant DML or broader employee data access. Scripts 17 and 18 create:
+For an existing lab where 16 through 18 already succeeded, retain its objects and skip their creation. Do not recreate the base principals or overwrite data grants. Script 19 retains the failing direct shared-team reproduction and is optional, not a required checkpoint for the working bridge.
+
+## Task 4: Install the cursor bridge
+
+For a new bridge installation, run:
+
+```sql
+<copy>
+CONNECT ADMIN@ADB_LAB
+@sql/22_native_cursor_runtime.sql
+CONNECT DDS_OWNER@ADB_LAB
+@sql/23_native_cursor_profile.sql
+CONNECT ADMIN@ADB_LAB
+@sql/24_native_cursor_team.sql
+</copy>
+```
+
+Do not rerun CREATE scripts over an installed runtime. Inspect existing objects after a partial failure; use the named cleanup scripts only if you intend to remove and reinstall the AI extension.
 
 | Object | Purpose |
 | --- | --- |
-| DDS_OWNER.DDS_AI_TOOLS | Session-local trace and fixed employee SELECTs; AUTHID CURRENT_USER |
-| DDS_LIST_EMPLOYEES / DDS_SALARY_SUMMARY | Invoker-rights standalone functions registered as tools |
-| DDS_OCI_PROFILE | OCI provider, resource principal, region, compartment, model, temperature 0 |
-| DDS_LIST_TOOL / DDS_SUMMARY_TOOL | Only two custom read tools; no arbitrary SQL tool |
-| DDS_HR_AGENT / DDS_HR_TASK / DDS_HR_TEAM | Single worker, sequential task, human interaction disabled |
+| DDS_AGENT_RUNTIME | NO AUTHENTICATION; no CREATE SESSION, system privileges, roles, data roles or employee-table/view grants |
+| RUN_DDS_AGENT | Invoker-rights entry; checks the DDS principal and opens fixed table, view and summary cursors |
+| DDS_AGENT_ENGINE | Definer-rights orchestration and session-local cursor/cache/trace scope; no employee SQL in this engine |
+| DDS_LIST_TOOL_FN and DDS_SUMMARY_TOOL_FN | Fetch-only native tools; optional employee number and table/view selection over DDS-authorized results |
+| DDS_NATIVE_OCI_PROFILE | OCI resource principal, configured model/region/compartment, temperature 0 and max_tokens 8000 |
+| DDS_CURSOR_AGENT and DDS_CURSOR_TASK | Read-only tool calling; human tool disabled; no diagnostic persistence flag |
+| DDS_CURSOR_TEAM | Native sequential team owned by the runtime, which also owns its conversation and state |
 
-All custom functions use invoker rights. The owner stores definitions; the caller supplies the security context. The shared team runs in the initiating consumer session. No owner or ADMIN login is used by the application. GRANT_PROFILE_ACCESS and GRANT_TEAM_ACCESS target DDS_AI_DB_ROLE, which is granted to DDS_EMPLOYEE_ROLE. DDS_OUTSIDER receives neither AI role access nor data grants.
+Only RUN_DDS_AGENT is granted to the existing DDS_AI_DB_ROLE for consumers. That database role reaches Emma and Marvin through DDS_EMPLOYEE_ROLE. The application continues to authenticate each end user; it never logs in as the runtime or owner. The model cannot supply an identity, SQL statement or cursor handle.
 
-The API preflight deliberately fails if profile/team sharing or GET_TEAM_STATE is missing. Request an Autonomous service update or support guidance; do not switch tools to definer rights. Oracle's maintained Python client confirms the profile-sharing parameter names used here: [Profile.grant_access source](https://github.com/oracle/python-select-ai/blob/main/src/select_ai/profile.py).
+The SQL executes under DDS before the native runtime fetches its results. No security_level=0 cursor is opened, and no cursor checks are disabled. This bridge uses small, fixed synthetic query snapshots established before planning. It is not an unrestricted natural-language-to-SQL interface. The normal cursor-security behavior is described in [DBMS_SQL](https://docs.oracle.com/en/database/oracle/oracle-database/26/arpls/DBMS_SQL.html).
 
-The AI setup is a one-time extension of the base lab. For an existing installation, retain scripts 01 through 04 and run only 16 through 19. For a partial AI setup, inspect the failing object and remove the extension with scripts 97 and 96 before retrying. Do not rerun principal creation over existing identities.
-
-## Task 4: Verify the same PL/SQL tools as each consumer
+## Task 5: Verify native completion as both end users
 
 ```sql
 <copy>
 CONNECT DDS_EMMA@ADB_LAB
-@sql/19_select_ai_consumer.sql
+@sql/25_native_cursor_verify.sql
 CONNECT DDS_MARVIN@ADB_LAB
-@sql/19_select_ai_consumer.sql
+@sql/25_native_cursor_verify.sql
 </copy>
 ```
 
-The first two function calls require no LLM. The final RUN_TEAM call performs real OCI inference and prints its actual session tool trace and answer. Expected Emma summary: count 1, total 80000. Expected Marvin summary: count 3, total 285000. If the direct functions differ from Lab 3, stop and inspect data grants and invoker rights before any inference demonstration.
+Require state SUCCEEDED and inspect tool_trace, not just fluent model text. Emma must return employee 400, count 1 and salary total 80000. Marvin must return 200/400/500, count 3 and total 285000; only his own sensitive identifier is visible. Both must return an empty list for employee 300 even when the prompt claims another identity.
 
-## Task 5: Install Python and configure the connection
+The runtime checks GET_TEAM_STATE as the actual team owner. It rejects an empty trace or unfinished run and clears cursors, cached data and the conversation on completion/failure. Error handlers retain the original error before cleanup so a second error cannot replace it with ORA-21002. No manual state override marks a run successful.
+
+ADMIN can run sql/26_native_cursor_history.sql for scoped native history and runtime privilege checks. History has the runtime as team invoker; use the tool result principal to identify the authenticated DDS consumer. Trace data contains synthetic employee values; retain it privately.
+
+## Task 6: Install and configure Python
 
 ```bash
 <copy>
@@ -109,16 +118,15 @@ bash setup.sh
 source .venv315/bin/activate
 python -m pip check
 cp config.env.example config.env
-# Edit config.env with your actual wallet alias, PDB and absolute wallet paths.
+# Edit the wallet alias, PDB and wallet paths. Preserve an existing config.env.
 chmod 600 config.env
 source config.env
+export SELECT_AI_EXECUTION=cursor_bridge
 python -m unittest discover -s tests -v
 </copy>
 ```
 
-If config.env already exists, edit it rather than overwriting it. Remove any former local-model setting. The corrected Python 3.15 binary-wheel environment is retained; no CMake or local model installation is required. Optional Python 3.12 support uses `.venv` instead. Thin mode requires no Instant Client. The app prompts for the wallet password and the selected user's database password; neither belongs in config.env or Git.
-
-If macOS Python needs a trusted CA bundle, install certifi and set SSL_CERT_FILE without disabling verification:
+Keep database and wallet passwords out of config.env and Git. The app prompts for them locally. The corrected Python 3.15 binary-wheel environment requires neither CMake nor a local model; Python 3.12 is also supported. Thin mode requires no Instant Client. For a macOS CA trust issue, use certifi rather than disabling TLS verification:
 
 ```bash
 <copy>
@@ -127,9 +135,7 @@ export SSL_CERT_FILE="$(python -m certifi)"
 </copy>
 ```
 
-Offline tests use mocks and do not certify OCI inference or DDS enforcement.
-
-## Task 6: Verify real Python access
+## Task 7: Verify Python access and inference
 
 ```bash
 <copy>
@@ -141,9 +147,9 @@ python agent/agent.py --user DDS_MARVIN --prompt 'Count my visible employees and
 </copy>
 ```
 
-The probes must match the SQL baseline before running AI. Inference prints TOOL_RESULT records from the PL/SQL functions actually invoked by RUN_TEAM. Every prompt gets a new conversation and fresh authenticated connection. The client rejects an empty trace, a different principal, an unknown tool, too many tools, a non-SUCCEEDED state or an empty answer. It drops its conversation after the request. Framework run history is separate from the displayed trace; review database retention and access before adapting this synthetic lab to other data.
+The probes bypass the LLM and must match Lab 3. The agent calls the fixed RUN_DDS_AGENT function with a bound prompt on a fresh authenticated DDS connection. Python rejects a mismatched principal, unknown tool, empty/oversized trace, unfinished state or blank answer. There is no Python planning loop or chat-only compatibility mode. SELECT_AI_EXECUTION=shared_team explicitly retains the original direct shared-team path for diagnosis; it is not a fallback after errors.
 
-**Checkpoint** Both consumer SQL runs, both Python probes and both OCI-backed prompts complete with matching results. Do not treat an offline test pass as this checkpoint.
+**Checkpoint** Both consumers complete native inference and their tool traces and AI answers match the SQL baseline. Offline tests alone do not establish this checkpoint.
 
 You may now proceed to the next lab.
 
@@ -151,4 +157,4 @@ You may now proceed to the next lab.
 
 - **Prepared for** - Vivek Verma
 - **Format reference** - The supplied OCI Database Management sample workshop
-- **Last Updated** - 23 November 2026
+- **Last Updated** - 28 November 2026

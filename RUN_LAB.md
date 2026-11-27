@@ -28,11 +28,19 @@ CONNECT ADMIN@ADB_LAB
 CONNECT DDS_OWNER@ADB_LAB
 @sql/17_select_ai_tools.sql
 @sql/18_select_ai_team.sql
+CONNECT ADMIN@ADB_LAB
+@sql/22_native_cursor_runtime.sql
+CONNECT DDS_OWNER@ADB_LAB
+@sql/23_native_cursor_profile.sql
+CONNECT ADMIN@ADB_LAB
+@sql/24_native_cursor_team.sql
 CONNECT DDS_EMMA@ADB_LAB
-@sql/19_select_ai_consumer.sql
+@sql/25_native_cursor_verify.sql
 CONNECT DDS_MARVIN@ADB_LAB
-@sql/19_select_ai_consumer.sql
+@sql/25_native_cursor_verify.sql
 ```
+
+The native cursor profile reads the same public settings from sql/15_select_ai_config.sql; the released model is `xai.grok-4.3`. Verify its availability and IAM permission in your inference region. Script 19 retains the original direct shared-team path for diagnosis.
 
 4. Install and launch the client:
 
@@ -44,12 +52,13 @@ cp config.env.example config.env
 # Edit config.env; keep passwords out of it. Preserve an existing file.
 chmod 600 config.env
 source config.env
+export SELECT_AI_EXECUTION=cursor_bridge
 python -m unittest discover -s tests -v
 python agent/verify_live.py
 python -m streamlit run streamlit_app.py
 ```
 
 5. Open http://127.0.0.1:8501. Authenticate as Emma, click Show database results, then run all six sample prompts. Sign out; repeat as Marvin. Compare every answer with its actual RUN_TEAM tool trace. Use AI_VERIFICATION.md to record results.
-6. Stop Streamlit with Ctrl+C and close all DDS sessions. Run the owner AI cleanup 97, ADMIN AI cleanup 96, optional delegated cleanup 98 if applicable, base cleanup 99, then verification 14. See cleanup/cleanup.md for exact commands and confirmation strings.
+6. Stop Streamlit with Ctrl+C and close all DDS sessions. Run ADMIN native cursor cleanup 95, then run the owner AI cleanup 97 (including both AI profiles), ADMIN AI cleanup 96, optional delegated cleanup 98 if applicable, base cleanup 99, then verification 14. See cleanup/cleanup.md for exact commands and confirmation strings.
 
-For an existing base lab, retain its data and identities and begin at step 3. No local model service is required. The selected OCI model runs remotely; the database orchestrates tool selection and inference. Only invoker-rights tools query employee data.
+For an existing base lab, retain its data and identities and begin at step 3. No local model service is required. The selected OCI model runs remotely; the database orchestrates tool selection and inference. An invoker-rights entry opens fixed query cursors under DDS before native tools fetch their authorized results. The no-authentication runtime has no employee-table/view privileges or data roles.

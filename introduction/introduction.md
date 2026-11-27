@@ -40,7 +40,7 @@ The same broad SELECT is used for both users. Oracle evaluates the authenticated
 | 400 | Emma | DDS_EMMA | DDS_MARVIN | 80000 | ID-DEMO-0400 |
 | 500 | Taylor | DDS_TAYLOR | DDS_MARVIN | 85000 | ID-DEMO-0500 |
 
-The direct path is Streamlit or CLI → authenticated DDS end user → Select AI Agent RUN_TEAM in the same consumer session → invoker-rights PL/SQL tool → database data grants → authorized tool result → OCI Generative AI → answer. The model cannot supply a database identity or arbitrary SQL. The UI reads the actual session tool trace after the agent run.
+The working path is Streamlit or CLI → authenticated DDS end user → invoker-rights entry opens DDS-authorized cursors → no-authentication runtime invokes native Select AI Agent RUN_TEAM → model chooses fetch-only tools → authorized tool results reach OCI Generative AI → validated answer and trace return to the caller. The prompt cannot supply a database identity or arbitrary SQL. The runtime owns no employee privileges; DDS authorizes the fixed queries under the signed-in consumer before agent planning.
 
 ![Identity and database enforcement flow](./images/architecture.svg)
 
@@ -62,7 +62,7 @@ the trusted identity and evaluates data grants before employee data reaches the 
 
 ## Validation status
 
-The release uses Select AI Agent with a configurable OCI Generative AI model. Earlier database probes established the expected employee and manager baseline. Live OCI-backed inference is pending participant configuration; see VALIDATION.md and AI_VERIFICATION.md for the required evidence. Offline tests use fake services and do not establish DDS enforcement.
+The cursor bridge was verified on 28 November 2026 with native RUN_TEAM and OCI xai.grok-4.3. Both Emma and Marvin reached SUCCEEDED in SQL and real Chrome/Streamlit sessions. Emma returned 1 employee and total 80000; Marvin returned 3 and total 285000 with report identifiers masked. Employee 300, view access and claimed-owner prompts preserved DDS restrictions. These are observed results on the tested deployment; repeat the checkpoints in your own database. See [verification details](../AI_VERIFICATION.md) and [validation scope](../VALIDATION.md).
 
 You may now proceed to the next lab.
 

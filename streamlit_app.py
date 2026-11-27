@@ -123,7 +123,7 @@ def run_request(database, prompt, *, probe=False):
         st.session_state["ai_response"] = ""
         st.session_state["request_error"] = (
             "The request did not finish. Check the database probe, then "
-            "check Select AI setup, shared profile/team access, OCI IAM and model availability. "
+            "check native cursor bridge setup (SQL 22–24), OCI IAM and model availability. "
             "No completed AI response is shown.")
 
 
@@ -169,10 +169,13 @@ def main():
     identity.metric("Active identity", database.principal)
     pdb.metric("PDB", database.config.expected_pdb)
     model.metric("AI provider", "OCI Generative AI")
-    st.caption("Select AI Agent team: " + agent_runtime.TEAM +
+    execution = os.getenv("SELECT_AI_EXECUTION", "cursor_bridge")
+    team = ("DDS_AGENT_RUNTIME.DDS_CURSOR_TEAM"
+            if execution == "cursor_bridge" else agent_runtime.TEAM)
+    st.caption("Native Select AI Agent team: " + team +
                " · Model is configured in the database AI profile.")
     st.caption("Identity verified by Oracle at sign-in and before every request. "
-               "Every database tool checks it again before reading data.")
+               "DDS authorizes query cursors; native agent tools fetch only their authorized results.")
     st.session_state.setdefault("prompt", PROMPTS[0])
     st.selectbox("Sample prompt", PROMPTS, key="example_prompt",
                  on_change=use_example)
@@ -208,6 +211,7 @@ def main():
         if st.session_state.get("request_error"):
             st.error(st.session_state["request_error"])
         elif st.session_state.get("ai_response"):
+            st.success("Native RUN_TEAM completed · SUCCEEDED")
             st.markdown(st.session_state["ai_response"])
         elif st.session_state.get("run_kind") == "probe":
             st.info("Database probe only. The AI model was not called.")
