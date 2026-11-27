@@ -19,7 +19,7 @@ DECLARE
 BEGIN
   DDS_OWNER.DDS_AI_TOOLS.reset_trace;
   c := DBMS_CLOUD_AI.CREATE_CONVERSATION();
-  params := JSON_OBJECT('conversation_id' VALUE c RETURNING CLOB);
+  SELECT JSON_OBJECT('conversation_id' VALUE c RETURNING CLOB) INTO params FROM dual;
   BEGIN
     :answer := DBMS_CLOUD_AI_AGENT.RUN_TEAM(
       team_name => 'DDS_OWNER.DDS_HR_TEAM',

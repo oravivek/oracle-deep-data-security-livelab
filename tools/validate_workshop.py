@@ -62,6 +62,11 @@ for tool_name, literal in tool_defs:
             assert all(isinstance(v, str) and v for v in item.values()), tool_name
         assert {i['name'] for i in inputs} == {'p_employee_id', 'p_source'}, tool_name
 
+# CLOB generation must execute in SQL, not the PL/SQL JSON_OBJECT builtin.
+consumer_sql = (root / 'sql/19_select_ai_consumer.sql').read_text()
+assert not re.search(r":=\s*JSON_OBJECT\([^;]*RETURNING\s+CLOB", consumer_sql, re.I)
+assert re.search(r"SELECT\s+JSON_OBJECT\('conversation_id' VALUE c RETURNING CLOB\)"
+                 r"\s+INTO params FROM dual", consumer_sql, re.I)
 files = [p for p in release_files(root) if p.name != 'SHA256SUMS.txt']
 if args.release:
     assert 'CHANGE_ME_PDB' in (root / 'sql/00_config.sql').read_text()

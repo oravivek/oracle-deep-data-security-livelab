@@ -9,3 +9,8 @@ New AI SQL setup/cleanup: NOT live-validated. Earlier DDS database baseline rema
 
 27 November 2026 correction: tool_inputs now uses an array of name/description objects.
 Literal tool JSON and input shape validated offline; live CREATE_TOOL remains unverified.
+
+27 November 2026 correction: consumer conversation JSON CLOB is constructed
+in SELECT INTO, avoiding PLS-00684 from direct PL/SQL JSON_OBJECT assignment.
+User-provided Emma output confirms direct invoker tools: ID 400, count 1, total 80000.
+The agent block failed compilation before inference; no live AI success is claimed.
