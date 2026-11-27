@@ -6,3 +6,6 @@ PASS: Word rebuilt from 11 workshop pages and 41 full source listings; all 50 re
 ZIP: explicit inventory; private config, credentials, wallets, environments and downloaded models excluded.
 Live OCI inference: NOT RUN; requires selected OCI model/region/compartment, IAM setup and database execution.
 New AI SQL setup/cleanup: NOT live-validated. Earlier DDS database baseline remains documented separately.
+
+27 November 2026 correction: tool_inputs now uses an array of name/description objects.
+Literal tool JSON and input shape validated offline; live CREATE_TOOL remains unverified.

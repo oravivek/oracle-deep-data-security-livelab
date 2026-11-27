@@ -23,8 +23,8 @@ BEGIN
   DBMS_CLOUD_AI_AGENT.CREATE_TOOL('DDS_LIST_TOOL',q'~{
     "instruction":"Read authorized employees. Use table normally; view only when requested. No identity input.",
     "function":"DDS_OWNER.DDS_LIST_EMPLOYEES",
-    "tool_inputs":{"p_employee_id":"Optional employee ID, e.g. 400; null means all authorized rows.",
-                   "p_source":"table or view; default table"}}~');
+    "tool_inputs":[{"name":"p_employee_id","description":"Optional ID; null means authorized rows."},
+                   {"name":"p_source","description":"table or view; default table"}]}~');
   DBMS_CLOUD_AI_AGENT.CREATE_TOOL('DDS_SUMMARY_TOOL',q'~{
     "instruction":"Count authorized employees and sum their salaries. No input.",
     "function":"DDS_OWNER.DDS_SALARY_SUMMARY"}~');

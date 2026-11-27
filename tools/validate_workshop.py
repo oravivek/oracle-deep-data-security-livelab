@@ -46,6 +46,22 @@ assert 'REMOVE_DDS_DEMO' in (root / 'sql/99_cleanup.sql').read_text()
 assert 'REMOVE_DDS_AGENT_APP' in (root / 'sql/98_cleanup_agent_app.sql').read_text()
 assert (root / 'sql/14_verify_cleanup.sql').is_file()
 assert (root / '.streamlit/config.toml').is_file()
+
+# Validate literal custom-tool metadata against the documented API contract.
+team_sql = (root / 'sql/18_select_ai_team.sql').read_text()
+tool_defs = re.findall(r"CREATE_TOOL\('([^']+)',q'~(.*?)~'\)", team_sql, re.S)
+assert len(tool_defs) == 2, 'Expected two custom tool definitions'
+for tool_name, literal in tool_defs:
+    attributes = json.loads(literal)
+    if 'tool_inputs' in attributes:
+        inputs = attributes['tool_inputs']
+        assert isinstance(inputs, list), (tool_name, 'tool_inputs must be an array')
+        for item in inputs:
+            assert isinstance(item, dict), tool_name
+            assert set(item) == {'name', 'description'}, tool_name
+            assert all(isinstance(v, str) and v for v in item.values()), tool_name
+        assert {i['name'] for i in inputs} == {'p_employee_id', 'p_source'}, tool_name
+
 files = [p for p in release_files(root) if p.name != 'SHA256SUMS.txt']
 if args.release:
     assert 'CHANGE_ME_PDB' in (root / 'sql/00_config.sql').read_text()
